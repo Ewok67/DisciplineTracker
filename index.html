@@ -130,17 +130,19 @@ function renderCalendar() {
 }
 function openDay(day) {
   selectedDay = day;
-  document.getElementById('day-title').textContent = 'Tasks — Oct ' + day;
+  document.getElementById('day-title').textContent = 'Tasks — Oct ' + day + ' (0%)';
   const list = document.getElementById('day-tasks');
-  const dayTasks = tasks.filter(t => new Date(t.created).getDate() === day || true); // show all for demo
+  const dayTasks = tasks.filter(t => new Date(t.created).getDate() === day || true);
   list.innerHTML = dayTasks.map((t, i) => {
     const color = t.priority==='very important'?'red':t.priority==='important'?'orange':'';
-    return `<div class="task-row" onclick="editTask(${i})"><div style="display:flex;align-items:center"><div class="priority-dot ${color}"></div><span>${t.name}</span></div><span style="font-size:11px;color:#556677">${t.completed?'Done':'Pending'}</span></div>`;
+    const done = t.completed ? '<span style="color:#00ffa3;font-weight:bold">✓ COMPLETED</span>' : '<span style="color:#ff3b3b;font-weight:bold">✗ PENDING</span>';
+    return `<div class="task-row" onclick="toggleComplete(${i})" style="cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><div class="priority-dot ${color}"></div><span style="font-weight:bold">${t.name}</span></div><div style="font-size:11px">${done}</div></div>`;
   }).join('') || '<p style="color:#556677;font-size:13px">No tasks for this day.</p>';
   document.getElementById('edit-name').value = ''; document.getElementById('edit-priority').value = 'not so important';
   show('day');
 }
 let editingIndex = -1;
+function toggleComplete(i) { tasks[i].completed = !tasks[i].completed; save(); openDay(selectedDay); }
 function editTask(i) { editingIndex = i; document.getElementById('edit-name').value = tasks[i].name; document.getElementById('edit-priority').value = tasks[i].priority; }
 function updateTask() { if (editingIndex >= 0) { tasks[editingIndex].name = document.getElementById('edit-name').value; tasks[editingIndex].priority = document.getElementById('edit-priority').value; save(); openDay(selectedDay); } }
 renderCalendar(); renderTasks();
