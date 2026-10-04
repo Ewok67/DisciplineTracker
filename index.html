@@ -11,7 +11,7 @@
 body{background:var(--bg);color:var(--fg);display:flex;justify-content:center;align-items:center;min-height:100vh}
 .phone{width:390px;height:820px;background:linear-gradient(180deg,#060b14 0%,#091325 100%);border:2px solid #1a2a3a;border-radius:32px;overflow:hidden;box-shadow:0 0 50px rgba(255,107,53,0.12);position:relative;display:flex;flex-direction:column}
 .header{padding:22px 24px 8px;text-align:center;letter-spacing:3px;font-family:'Orbitron',sans-serif;font-size:16px;color:var(--fg);border-bottom:1px solid #1a2a3a;background:#060b14}
-.screen{flex:1;overflow-y:auto;padding:16px}
+.screen{flex:1;padding:10px;overflow:hidden}
 .subtitle{color:var(--muted);font-size:11px;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .card{background:var(--card);border:1px solid #1a2a3a;border-radius:14px;padding:14px;text-align:center}
@@ -40,8 +40,8 @@ button.save:hover{filter:brightness(1.1)}
   <div class="header">PROGRESS TRACKER</div>
 
   <div id="screen-calendar" class="screen">
-    <div class="subtitle">October 2026 — Tap a day</div>
-    <div class="grid" style="grid-template-columns:repeat(7,1fr);font-size:12px;" id="calendar-grid"></div>
+    <div class="subtitle" style="font-size:10px">MON TUE WED THU FRI SAT SUN</div>
+    <div class="grid" style="grid-template-columns:repeat(7,1fr);font-size:10px;gap:3px;" id="calendar-grid"></div>
   </div>
 
   <div id="screen-day" class="screen hidden">
@@ -73,15 +73,18 @@ button.save:hover{filter:brightness(1.1)}
       <option value="important">Important</option>
       <option value="very important">Very important</option>
     </select>
+    <select id="task-repeat" style="margin-top:6px">
+      <option value="daily">Daily</option>
+      <option value="3daily">Every 3 days</option>
+    </select>
     <button class="save" onclick="addTask()">SAVE TASK</button>
     <div class="subtitle" style="margin-top:20px">Your Tasks</div>
     <div id="task-list"></div>
   </div>
 
   <div class="nav">
-    <button onclick="show('calendar')" id="btn-calendar" class="active">CALENDAR</button>
-    <button onclick="show('dashboard')" id="btn-dashboard">DASHBOARD</button>
-    <button onclick="show('add')" id="btn-add">ADD</button>
+    <button onclick="show('add')" style="flex:1;background:#ffaa00;color:#000;font-weight:bold">+ NEW</button>
+    <button onclick="show('dashboard')" style="flex:1;background:#ff3b3b;color:#fff;font-weight:bold">DASHBOARD</button>
   </div>
 </div>
 
@@ -91,8 +94,9 @@ function save() { localStorage.setItem('pt_tasks', JSON.stringify(tasks)); }
 function addTask() {
   const name = document.getElementById('task-name').value.trim();
   const priority = document.getElementById('task-priority').value;
+  const repeat = document.getElementById('task-repeat').value;
   if (!name) return alert('Enter a name');
-  tasks.push({ name, priority, completed: false, skipped: false, created: new Date().toISOString() });
+  tasks.push({ name, priority, repeat, completed: false, skipped: false, created: new Date().toISOString() });
   save(); document.getElementById('task-name').value = ''; renderTasks(); show('calendar');
 }
 function show(screen) {
@@ -120,7 +124,7 @@ function renderCalendar() {
   // 5 rows = 5 weeks (35 slots), show 1-31, blank rest, fixed 5x7 grid
   for (let d=1; d<=35; d++) {
     if (d > 31) { html += `<div></div>`; continue; }
-    html += `<div class="card" style="cursor:pointer;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center" onclick="openDay(${d})"><div style="font-size:13px;font-weight:bold">${d}</div><div style="font-size:14px;color:#00ffa3">0%</div></div>`;
+    html += `<div class="card" style="cursor:pointer;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;padding:4px" onclick="openDay(${d})"><div style="font-weight:bold">${d}</div><div style="font-size:10px;color:#00ffa3">0%</div></div>`;
   }
   grid.innerHTML = html;
 }
