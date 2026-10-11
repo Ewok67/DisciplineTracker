@@ -26,10 +26,13 @@ jobs:
           java-version: '17'
 
       - name: Set up Android NDK and CMake
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: 27.0.12077973
-          cmake-version: 3.22.1
+        shell: bash
+        run: |
+          # sdkmanager is not on PATH on GitHub runners; find it under $ANDROID_HOME
+          SDKM=$(echo "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager)
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" "ndk;27.0.12077973" "cmake;3.22.1"
+          echo "$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_PATH"
 
       # Stable signing key: the first run generates it and caches it; later
       # runs reuse the same key so installed apps accept future APK updates.
