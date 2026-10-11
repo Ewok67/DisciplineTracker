@@ -7,14 +7,15 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Inter:wght@300;400;600;700&display=swap');
 :root{
-  --fg:#e2f3ff; --muted:#8899aa; --dim:#556677;
+  --fg:#f2f7ff; --muted:#8a94a3; --dim:#5a6472;
   --accent:#ff6b35; --accent2:#ff3b3b;
-  --green:#00ffa3; --card:#0d1b2a; --line:#1a2a3a; --bg:#060b14;
+  --green:#00ffa3; --card:#111214; --line:#232427; --bg:#000000;
+  --shine: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -3px 6px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
-#app{width:100%;max-width:420px;height:100vh;max-height:900px;display:flex;flex-direction:column;background:linear-gradient(180deg,#060b14 0%,#091325 100%);position:relative}
+#app{width:100%;max-width:420px;height:100vh;max-height:900px;display:flex;flex-direction:column;background:#000;position:relative}
 header{padding:16px 20px 10px;text-align:center;border-bottom:1px solid var(--line);flex-shrink:0}
 h1{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:3px;color:var(--fg)}
 .subtitle{color:var(--dim);font-size:9px;letter-spacing:2px;margin-top:4px;text-transform:uppercase}
@@ -64,13 +65,13 @@ input{width:100%;padding:13px;background:var(--card);color:var(--fg);border:1px 
 input:focus{border-color:var(--accent)}
 .chips{display:flex;gap:6px}
 .chip{flex:1;padding:11px 4px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:center}
-.chip.on{color:#060b14}
-.chip.on.nsi{background:var(--green)} .chip.on.imp{background:#ffaa00} .chip.on.vimp{background:var(--accent2);color:#fff}
-.chip.rep.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip.on{color:#0a0a0a}
+.chip.on.nsi{background:linear-gradient(180deg,#5cffc4,#00e08a);box-shadow:0 0 12px rgba(0,255,163,.4)} .chip.on.imp{background:linear-gradient(180deg,#ffc35e,#ffa000);box-shadow:0 0 12px rgba(255,170,0,.4)} .chip.on.vimp{background:linear-gradient(180deg,#ff6b6b,#e02020);color:#fff;box-shadow:0 0 12px rgba(255,59,59,.45)}
+.chip.rep.on{background:linear-gradient(180deg,#ffb066,#f4560d);color:#fff;border-color:rgba(255,255,255,.3);box-shadow:0 0 12px rgba(255,107,53,.4)}
 .row2{display:flex;gap:8px}.row2>div{flex:1}
 .btn{width:100%;padding:15px;border:none;border-radius:13px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:20px}
-.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
-.btn-primary:active{filter:brightness(.9)}
+.btn-primary{background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);color:#fff;border:1px solid rgba(255,255,255,.28);text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:var(--shine),0 6px 18px rgba(255,107,53,.35)}
+.btn-primary:active{transform:translateY(1px);filter:brightness(.96)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);margin-top:8px}
 .hint{font-size:9px;color:var(--dim);margin-top:6px;text-align:center}
 
@@ -94,12 +95,21 @@ input:focus{border-color:var(--accent)}
 .legend{display:flex;gap:14px;justify-content:center;margin:10px 0 2px}
 .legend span{font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px;letter-spacing:1px}
 
-/* ---------- Bottom nav ---------- */
-nav{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);flex-shrink:0;background:#060b14}
-nav button{flex:1;padding:13px;border:none;border-radius:11px;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer}
-#nav-new{background:#ffaa00;color:#000}
-#nav-dash{background:var(--card);color:var(--muted);border:1px solid var(--line)}
-nav button:active{filter:brightness(.85)}
+/* ---------- Bottom bar: centered pill + round FAB ---------- */
+nav{position:relative;display:flex;justify-content:center;align-items:center;padding:12px 16px 16px;border-top:1px solid var(--line);flex-shrink:0;background:#000}
+#nav-dash{min-width:180px;padding:14px 30px;border-radius:30px;font-size:12px;font-weight:800;letter-spacing:2px;cursor:pointer;color:#04120c;
+  background:linear-gradient(180deg,#3ff5b0 0%,#00e896 45%,#00bd76 100%);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:var(--shine),0 6px 18px rgba(0,232,150,.35);
+  text-shadow:0 1px 0 rgba(255,255,255,.3)}
+#nav-dash:active{transform:translateY(1px);filter:brightness(.95)}
+#nav-new{position:absolute;right:16px;width:56px;height:56px;border-radius:50%;font-size:28px;font-weight:300;line-height:1;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
+  border:1px solid rgba(255,255,255,.3);
+  box-shadow:var(--shine),0 6px 22px rgba(255,107,53,.5);
+  display:flex;align-items:center;justify-content:center;
+  text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#nav-new:active{transform:scale(.94)}
 .back-btn{background:transparent;border:none;color:var(--muted);font-size:12px;letter-spacing:1px;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
 </style>
 </head>
@@ -212,8 +222,8 @@ nav button:active{filter:brightness(.85)}
   </main>
 
   <nav>
-    <button id="nav-new">+ NEW</button>
     <button id="nav-dash">DASHBOARD</button>
+    <button id="nav-new" aria-label="New task">+</button>
   </nav>
 </div>
 
