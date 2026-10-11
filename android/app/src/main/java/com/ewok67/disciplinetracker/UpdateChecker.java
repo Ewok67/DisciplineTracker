@@ -31,13 +31,20 @@ import java.net.URL;
  * BuildConfig.VERSION_NAME -> download the .apk asset -> hand it to the
  * system package installer via FileProvider.
  *
+ * Status callbacks (checking / latest / update-found / error) feed the web UI;
+ * {@code force} bypasses the launch throttle so settings can check manually.
+ *
  * Notes:
- *  - Unauthenticated GitHub API allows 60 requests/hour; checks are throttled
- *   to at most once every 6 hours.
+ *  - Unauthenticated GitHub API allows 60 requests/hour; automatic checks are
+ *   throttled to at most once every 6 hours.
  *  - Android never allows a fully silent install for sideloaded apps; the
  *   system installer always asks for final confirmation.
  */
 public class UpdateChecker {
+
+    public interface Listener {
+        void onStatus(String status);
+    }
 
     private static final String REPO_OWNER = "Ewok67";
     private static final String REPO_NAME = "DisciplineTracker";
@@ -51,10 +58,13 @@ public class UpdateChecker {
     private static final int CONNECT_TIMEOUT_MS = 15000;
     private static final int READ_TIMEOUT_MS = 30000;
 
-    public static void checkForUpdate(final Activity activity) {
+    /**
+     * @param force when true, skips the 6-hour throttle (manual check from settings)
+     */
+    public static void check(final Activity activity, final Listener listener, final boolean force) {
         final SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         final long now = System.currentTimeMillis();
-        if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < THROTTLE_MS) {
+        if (!force && now - prefs.getLong(KEY_LAST_CHECK, 0L) < THROTTLE_MS) {
             return;
         }
         prefs.edit().putLong(KEY_LAST_CHECK, now).apply();
@@ -62,11 +72,20 @@ public class UpdateChecker {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (listener != null) {
+                    listener.onStatus("checking");
+                }
                 try {
                     JSONObject release = getJson(API_URL);
                     String tag = release.optString("tag_name", "");
                     if (tag.isEmpty() || !isNewer(tag, BuildConfig.VERSION_NAME)) {
+                        if (listener != null) {
+                            listener.onStatus("latest");
+                        }
                         return; // up to date
+                    }
+                    if (listener != null) {
+                        listener.onStatus("update-found");
                     }
 
                     String apkUrl = null;
@@ -82,16 +101,25 @@ public class UpdateChecker {
                         }
                     }
                     if (apkUrl == null) {
+                        if (listener != null) {
+                            listener.onStatus("error");
+                        }
                         return;
                     }
 
                     File apk = downloadApk(activity, apkUrl);
                     if (apk == null || apk.length() == 0) {
+                        if (listener != null) {
+                            listener.onStatus("error");
+                        }
                         return;
                     }
                     promptInstall(activity, apk);
                 } catch (Exception e) {
-                    // Network/API failure — stay silent, retry on next launch.
+                    // Network/API failure — reported via callback, retried on next launch.
+                    if (listener != null) {
+                        listener.onStatus("error");
+                    }
                 }
             }
         }).start();

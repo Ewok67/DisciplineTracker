@@ -3,6 +3,7 @@ package com.ewok67.disciplinetracker;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -36,14 +37,46 @@ public class MainActivity extends Activity {
 
         setContentView(webView);
 
+        // Bridge: lets the web app trigger a manual (unthrottled) update check
+        // and read the installed version from settings.
+        webView.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void checkForUpdate() {
+                UpdateChecker.check(MainActivity.this, statusListener, true);
+            }
+
+            @JavascriptInterface
+            public String getVersion() {
+                return BuildConfig.VERSION_NAME;
+            }
+        }, "AndroidBridge");
+
         if (savedInstanceState == null) {
             webView.loadUrl("file:///android_asset/index.html");
         } else {
             webView.restoreState(savedInstanceState);
         }
 
-        UpdateChecker.checkForUpdate(this);
+        // automatic, throttled check on launch
+        UpdateChecker.check(this, statusListener, false);
     }
+
+    /** Forwards update status (checking/latest/update-found/error) into the web UI. */
+    private final UpdateChecker.Listener statusListener = new UpdateChecker.Listener() {
+        @Override
+        public void onStatus(final String status) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (webView != null) {
+                        webView.evaluateJavascript(
+                                "window.__onUpdateStatus && window.__onUpdateStatus('"
+                                        + status + "')", null);
+                    }
+                }
+            });
+        }
+    };
 
     @Override
     public void onBackPressed() {
