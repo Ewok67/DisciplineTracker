@@ -29,7 +29,6 @@ Java_com_ewok67_disciplinetracker_AgentEngine_nativeInit(JNIEnv *env, jobject /*
 
     llama_model_params mparams = llama_model_default_params();
     mparams.n_gpu_layers = 0; // CPU inference for maximum device compatibility
-    mparams.use_mmap = true;
 
     g_model = llama_model_load_from_file(path, mparams);
     env->ReleaseStringUTFChars(jpath, path);
