@@ -26,9 +26,10 @@ jobs:
           java-version: '17'
 
       - name: Set up Android NDK and CMake
-        run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "ndk;27.0.12077973" "cmake;3.22.1"
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: 27.0.12077973
+          cmake-version: 3.22.1
 
       # Stable signing key: the first run generates it and caches it; later
       # runs reuse the same key so installed apps accept future APK updates.
