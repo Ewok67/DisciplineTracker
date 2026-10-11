@@ -1,17 +1,82 @@
 name: Build Android APK
+
 on:
   push:
-    branches: [master]
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'android/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 18 }
-      - run: npm install
-      - run: npm run build:android || npx expo build:android --no-publish
-      - uses: actions/upload-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          name: progress-tracker.apk
-          path: '*.apk'
+          distribution: temurin
+          java-version: '17'
+
+      # Stable signing key: the first run generates it and caches it; later
+      # runs reuse the same key so installed apps accept future APK updates.
+      # (If the cache is ever evicted, the signature changes and the app must
+      # be reinstalled once — rare; the key is re-saved on every run.)
+      - name: Restore signing keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: android-debug-keystore-v1
+
+      - name: Generate keystore if missing
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore ~/.android/debug.keystore \
+              -alias androiddebugkey \
+              -storepass android \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Read version from gradle
+        id: version
+        run: |
+          VERSION=$(grep -oP "versionName\s+'\K[^']+" android/app/build.gradle | head -1)
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Copy web app into Android assets
+        run: mkdir -p android/app/src/main/assets && cp index.html android/app/src/main/assets/index.html
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK (signed, installable)
+        run: gradle assembleDebug --no-daemon -p android
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: discipline-tracker-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.name }}
+          name: Discipline Tracker v${{ steps.version.outputs.name }}
+          body: |
+            Install this APK on your phone. The app checks this release on
+            launch and offers the update when a newer version is published.
+          files: android/app/build/outputs/apk/debug/app-debug.apk

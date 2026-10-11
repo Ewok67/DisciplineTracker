@@ -1,1 +1,12 @@
 node_modules/
+.expo/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+.DS_Store

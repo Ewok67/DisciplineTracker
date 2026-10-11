@@ -1,151 +1,522 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Progress Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Discipline Tracker</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@300;600&display=swap');
-:root{--fg:#e2f3ff;--muted:#8899aa;--accent:#ff6b35;--card:#0d1b2a;--bg:#060b14;}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
-body{background:var(--bg);color:var(--fg);display:flex;justify-content:center;align-items:center;min-height:100vh}
-.phone{width:390px;height:820px;background:linear-gradient(180deg,#060b14 0%,#091325 100%);border:2px solid #1a2a3a;border-radius:32px;overflow:hidden;box-shadow:0 0 50px rgba(255,107,53,0.12);position:relative;display:flex;flex-direction:column}
-.header{padding:22px 24px 8px;text-align:center;letter-spacing:3px;font-family:'Orbitron',sans-serif;font-size:16px;color:var(--fg);border-bottom:1px solid #1a2a3a;background:#060b14}
-.screen{flex:1;padding:10px;overflow:hidden}
-.subtitle{color:var(--muted);font-size:11px;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.card{background:var(--card);border:1px solid #1a2a3a;border-radius:14px;padding:14px;text-align:center}
-.day{font-size:11px;font-weight:bold;color:var(--fg);margin-bottom:6px;letter-spacing:1px}
-.pct{font-size:22px;font-weight:bold;color:#00ffa3}
-.label{font-size:9px;color:#556677;margin-top:2px}
-.dashboard-card{background:var(--card);border:1px solid #1a2a3a;border-radius:14px;padding:16px;margin-bottom:10px}
-.tag{display:inline-block;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:bold;margin-right:6px;margin-top:6px}
-.tag.orange{background:#ffaa00;color:#000}
-.tag.red{background:#ff3b3b;color:#fff}
-.nav{display:flex;background:#060b14;border-top:1px solid #1a2a3a;padding:10px;gap:6px}
-.nav button{flex:1;padding:10px;border:none;border-radius:10px;background:#0d1b2a;color:var(--muted);font-size:11px;font-weight:bold;cursor:pointer;letter-spacing:1px;transition:all .2s}
-.nav button.active{background:var(--accent);color:#fff}
-input,select{width:100%;padding:14px;background:var(--card);color:var(--fg);border:1px solid #1a2a3a;border-radius:12px;font-size:15px;margin-bottom:12px}
-button.save{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-weight:bold;letter-spacing:2px;font-size:14px;cursor:pointer}
-button.save:hover{filter:brightness(1.1)}
-.task-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid #1a2a3a;border-radius:12px;padding:12px;margin-bottom:8px}
-.task-row .priority-dot{width:10px;height:10px;border-radius:50%;margin-right:10px}
-.task-row .priority-dot.orange{background:#ffaa00}
-.task-row .priority-dot.red{background:#ff3b3b}
-.hidden{display:none}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Inter:wght@300;400;600;700&display=swap');
+:root{
+  --fg:#e2f3ff; --muted:#8899aa; --dim:#556677;
+  --accent:#ff6b35; --accent2:#ff3b3b;
+  --green:#00ffa3; --card:#0d1b2a; --line:#1a2a3a; --bg:#060b14;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
+#app{width:100%;max-width:420px;height:100vh;max-height:900px;display:flex;flex-direction:column;background:linear-gradient(180deg,#060b14 0%,#091325 100%);position:relative}
+header{padding:16px 20px 10px;text-align:center;border-bottom:1px solid var(--line);flex-shrink:0}
+h1{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:3px;color:var(--fg)}
+.subtitle{color:var(--dim);font-size:9px;letter-spacing:2px;margin-top:4px;text-transform:uppercase}
+main{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px}
+main::-webkit-scrollbar{display:none}
+.hidden{display:none!important}
+
+/* ---------- Calendar ---------- */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-title{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;color:var(--fg)}
+.nav-arrow{width:34px;height:34px;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:10px;font-size:15px;cursor:pointer;line-height:1}
+.nav-arrow:active{background:var(--accent);color:#fff}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.dow span{text-align:center;font-size:8px;letter-spacing:1px;color:var(--dim);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.day{aspect-ratio:1/1.08;background:var(--card);border:1px solid var(--line);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:2px;transition:transform .1s}
+.day:active{transform:scale(.94)}
+.day.empty{background:transparent;border-color:transparent;cursor:default}
+.day .num{font-size:11px;font-weight:700;color:var(--fg)}
+.day .pct{font-size:9px;font-weight:700;margin-top:1px}
+.day.today{border-color:var(--accent);box-shadow:0 0 10px rgba(255,107,53,.25)}
+.day.done .num{color:var(--green)}
+.day.no-tasks .pct{color:var(--dim)}
+.pct.g{color:var(--green)} .pct.o{color:#ffaa00} .pct.r{color:var(--accent2)}
+
+/* ---------- Day view ---------- */
+.day-head{display:flex;align-items:baseline;justify-content:space-between;margin:4px 0 12px}
+.day-head h2{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px}
+.day-pct{font-size:20px;font-weight:700}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .3s}
+.task-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:opacity .15s}
+.task-row:active{opacity:.7}
+.task-row.checked{opacity:.45}
+.task-row .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#060b14}
+.task-row.checked .box{background:var(--green);border-color:var(--green)}
+.task-row .name{flex:1;font-size:14px;font-weight:600}
+.task-row.checked .name{text-decoration:line-through}
+.task-row .meta{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pdot.nsi{background:#00ffa3} .pdot.imp{background:#ffaa00} .pdot.vimp{background:var(--accent2)}
+.empty-state{text-align:center;color:var(--dim);font-size:12px;padding:30px 10px}
+
+/* ---------- Add task ---------- */
+label{display:block;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin:14px 0 6px}
+input{width:100%;padding:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:12px;font-size:14px;outline:none}
+input:focus{border-color:var(--accent)}
+.chips{display:flex;gap:6px}
+.chip{flex:1;padding:11px 4px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:center}
+.chip.on{color:#060b14}
+.chip.on.nsi{background:var(--green)} .chip.on.imp{background:#ffaa00} .chip.on.vimp{background:var(--accent2);color:#fff}
+.chip.rep.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row2{display:flex;gap:8px}.row2>div{flex:1}
+.btn{width:100%;padding:15px;border:none;border-radius:13px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:20px}
+.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
+.btn-primary:active{filter:brightness(.9)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);margin-top:8px}
+.hint{font-size:9px;color:var(--dim);margin-top:6px;text-align:center}
+
+/* ---------- Dashboard ---------- */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
+.stat .k{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.stat .v{font-size:22px;font-weight:700;margin-top:3px;font-family:'Orbitron',sans-serif}
+.stat .v.g{color:var(--green)} .stat .v.o{color:#ffaa00} .stat .v.r{color:var(--accent2)}
+.card2{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:8px}
+.card2 h3{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-row .lbl{width:88px;font-size:10px;color:var(--muted);flex-shrink:0}
+.bar{flex:1;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar>div{height:100%;border-radius:4px}
+.bar-row .val{width:34px;text-align:right;font-size:10px;font-weight:700;flex-shrink:0}
+.tag{display:inline-block;padding:5px 11px;border-radius:20px;font-size:9px;font-weight:700;margin:2px 4px 2px 0}
+.tag.nsi{background:rgba(0,255,163,.15);color:var(--green)}
+.tag.imp{background:rgba(255,170,0,.15);color:#ffaa00}
+.tag.vimp{background:rgba(255,59,59,.15);color:var(--accent2)}
+.legend{display:flex;gap:14px;justify-content:center;margin:10px 0 2px}
+.legend span{font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px;letter-spacing:1px}
+
+/* ---------- Bottom nav ---------- */
+nav{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);flex-shrink:0;background:#060b14}
+nav button{flex:1;padding:13px;border:none;border-radius:11px;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer}
+#nav-new{background:#ffaa00;color:#000}
+#nav-dash{background:var(--card);color:var(--muted);border:1px solid var(--line)}
+nav button:active{filter:brightness(.85)}
+.back-btn{background:transparent;border:none;color:var(--muted);font-size:12px;letter-spacing:1px;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
 </style>
 </head>
 <body>
-<div class="phone">
-  <div class="header">PROGRESS TRACKER</div>
+<div id="app">
+  <header>
+    <h1>DISCIPLINE TRACKER</h1>
+    <div class="subtitle" id="header-sub">Stay on track</div>
+  </header>
 
-  <div id="screen-calendar" class="screen">
-    <div class="subtitle" style="font-size:10px">MON TUE WED THU FRI SAT SUN</div>
-    <div class="grid" style="grid-template-columns:repeat(7,1fr);font-size:10px;gap:3px;" id="calendar-grid"></div>
-  </div>
-
-  <div id="screen-day" class="screen hidden">
-    <div class="subtitle" id="day-title">Tasks for Day</div>
-    <div id="day-tasks"></div>
-    <input id="edit-name" placeholder="Edit task name" style="margin-top:10px" />
-    <select id="edit-priority" style="margin-top:6px">
-      <option>not so important</option><option>important</option><option>very important</option>
-    </select>
-    <button class="save" onclick="updateTask()" style="margin-top:10px">SAVE CHANGES</button>
-    <button onclick="show('calendar')" style="margin-top:10px;background:#1a2a3a;color:#fff;width:100%;padding:12px;border:1px solid #2a3a4a;border-radius:10px;font-weight:bold;letter-spacing:1px">BACK</button>
-  </div>
-
-  <div id="screen-dashboard" class="screen hidden">
-    <div class="subtitle">Skip Analytics</div>
-    <div class="dashboard-card"><strong>Skip Rate</strong> — Today: 0 | Week: 2 | Month: 5 | Year: 12</div>
-    <div class="dashboard-card">
-      <strong>Priority Overview</strong><br>
-      <span class="tag orange">Important • 5</span><span class="tag red">Very Important • 3</span>
+  <!-- CALENDAR -->
+  <main id="screen-calendar">
+    <div class="cal-head">
+      <button class="nav-arrow" id="prev-month">&#8249;</button>
+      <div class="cal-title" id="cal-title"></div>
+      <button class="nav-arrow" id="next-month">&#8250;</button>
     </div>
-    <div class="dashboard-card"><strong>Completion Rate: 72%</strong> · Avg Time: 2h 14m</div>
-  </div>
+    <div class="dow"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+    <div class="grid" id="cal-grid"></div>
+    <div class="legend">
+      <span><span class="pdot nsi"></span>not so important</span>
+      <span><span class="pdot imp"></span>important</span>
+      <span><span class="pdot vimp"></span>very important</span>
+    </div>
+  </main>
 
-  <div id="screen-add" class="screen hidden">
-    <div class="subtitle">New Task</div>
-    <input id="task-name" placeholder="Task name (e.g. Drink water)" />
-    <select id="task-priority">
-      <option value="not so important">Not so important</option>
-      <option value="important">Important</option>
-      <option value="very important">Very important</option>
-    </select>
-    <select id="task-repeat" style="margin-top:6px">
-      <option value="daily">Daily</option>
-      <option value="3daily">Every 3 days</option>
-    </select>
-    <button class="save" onclick="addTask()">SAVE TASK</button>
-    <div class="subtitle" style="margin-top:20px">Your Tasks</div>
-    <div id="task-list"></div>
-  </div>
+  <!-- DAY -->
+  <main id="screen-day" class="hidden">
+    <button class="back-btn" id="day-back">&#8249; BACK</button>
+    <div class="day-head">
+      <h2 id="day-title"></h2>
+      <div class="day-pct" id="day-pct"></div>
+    </div>
+    <div class="progress"><div id="day-bar" style="width:0%"></div></div>
+    <div id="day-tasks"></div>
+    <button class="btn btn-ghost" id="add-for-day">+ ADD TASK FOR THIS DAY</button>
+  </main>
 
-  <div class="nav">
-    <button onclick="show('add')" style="flex:1;background:#ffaa00;color:#000;font-weight:bold">+ NEW</button>
-    <button onclick="show('dashboard')" style="flex:1;background:#ff3b3b;color:#fff;font-weight:bold">DASHBOARD</button>
-  </div>
+  <!-- ADD TASK -->
+  <main id="screen-add" class="hidden">
+    <button class="back-btn" id="add-back">&#8249; BACK</button>
+    <div class="day-head"><h2 id="add-title">NEW TASK</h2></div>
+
+    <label>Task name</label>
+    <input id="f-name" placeholder="e.g. Drink 2L water" autocomplete="off">
+
+    <label>Priority</label>
+    <div class="chips" id="f-priority">
+      <div class="chip nsi" data-v="not so important">NOT SO<br>IMPORTANT</div>
+      <div class="chip imp" data-v="important">IMPORTANT</div>
+      <div class="chip vimp" data-v="very important">VERY<br>IMPORTANT</div>
+    </div>
+
+    <label>Repeat</label>
+    <div class="chips" id="f-repeat">
+      <div class="chip rep on" data-v="once">ONCE</div>
+      <div class="chip rep" data-v="daily">DAILY</div>
+      <div class="chip rep" data-v="weekly">WEEKLY</div>
+      <div class="chip rep" data-v="monthly">MONTHLY</div>
+      <div class="chip rep" data-v="interval">CUSTOM</div>
+    </div>
+    <div id="interval-wrap" class="hidden">
+      <label>Every N days</label>
+      <input id="f-interval" type="number" min="2" max="60" value="3" inputmode="numeric">
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Start date</label>
+        <input id="f-start" type="date">
+      </div>
+      <div>
+        <label>End date <span style="color:var(--dim)">(opt)</span></label>
+        <input id="f-end" type="date">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="save-task">SAVE TASK</button>
+    <div class="hint" id="add-hint"></div>
+  </main>
+
+  <!-- DASHBOARD -->
+  <main id="screen-dashboard" class="hidden">
+    <button class="back-btn" id="dash-back">&#8249; BACK</button>
+    <div class="day-head"><h2>ANALYTICS</h2></div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Completion rate</div><div class="v g" id="s-rate">0%</div></div>
+      <div class="stat"><div class="k">Current streak</div><div class="v o" id="s-streak">0d</div></div>
+      <div class="stat"><div class="k">Done today</div><div class="v" id="s-today">0/0</div></div>
+      <div class="stat"><div class="k">Done this week</div><div class="v" id="s-week">0/0</div></div>
+      <div class="stat"><div class="k">Done this month</div><div class="v" id="s-month">0/0</div></div>
+      <div class="stat"><div class="k">Skipped days</div><div class="v r" id="s-skips">0</div></div>
+    </div>
+
+    <div class="card2">
+      <h3>Last 7 days</h3>
+      <div id="week-bars"></div>
+    </div>
+
+    <div class="card2">
+      <h3>By priority</h3>
+      <div id="prio-bars"></div>
+    </div>
+
+    <div class="card2">
+      <h3>Active tasks</h3>
+      <div id="active-tags"></div>
+    </div>
+  </main>
+
+  <nav>
+    <button id="nav-new">+ NEW</button>
+    <button id="nav-dash">DASHBOARD</button>
+  </nav>
 </div>
 
 <script>
-const tasks = []; // started empty — you add everything
-function save() { localStorage.setItem('pt_tasks', JSON.stringify(tasks)); }
-function addTask() {
-  const name = document.getElementById('task-name').value.trim();
-  const priority = document.getElementById('task-priority').value;
-  const repeat = document.getElementById('task-repeat').value;
-  if (!name) return alert('Enter a name');
-  tasks.push({ name, priority, repeat, completed: false, skipped: false, created: new Date().toISOString() });
-  save(); document.getElementById('task-name').value = ''; renderTasks(); show('calendar');
+(function(){
+'use strict';
+
+/* ================= data ================= */
+var LS_TASKS='dt_tasks_v1', LS_DONE='dt_done_v1', LS_MONTH='dt_month_v1', LS_SEEDED='dt_seeded_v1';
+var tasks=[], done={}, viewMonth=null, selectedDate=null;
+
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function today(){return fmt(new Date());}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function dayDiff(a,b){return Math.round((parse(b)-parse(a))/86400000);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function doneKey(id,date){return id+'|'+date;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function save(){
+  localStorage.setItem(LS_TASKS,JSON.stringify(tasks));
+  localStorage.setItem(LS_DONE,JSON.stringify(done));
+  localStorage.setItem(LS_MONTH,viewMonth);
 }
-function show(screen) {
-  ['calendar', 'dashboard', 'add', 'day'].forEach(s => {
-    document.getElementById('screen-' + s).classList.add('hidden');
-    const btn = document.getElementById('btn-' + s);
-    if (btn) btn.classList.remove('active');
-  });
-  document.getElementById('screen-' + screen).classList.remove('hidden');
-  const btn = document.getElementById('btn-' + screen);
-  if (btn) btn.classList.add('active');
-  if (screen === 'add') renderTasks();
-}
-function renderTasks() {
-  const list = document.getElementById('task-list');
-  list.innerHTML = tasks.map((t, i) => {
-    const c = t.priority === 'very important' ? 'red' : t.priority === 'important' ? 'orange' : '';
-    return `<div class="task-row"><div style="display:flex;align-items:center"><div class="priority-dot ${c}"></div><span>${t.name}</span></div><span style="font-size:11px;color:#556677">${t.priority}</span></div>`;
-  }).join('');
-}
-let selectedDay = 1;
-function renderCalendar() {
-  const grid = document.getElementById('calendar-grid');
-  let html = '';
-  // 5 rows = 5 weeks (35 slots), show 1-31, blank rest, fixed 5x7 grid
-  for (let d=1; d<=35; d++) {
-    if (d > 31) { html += `<div></div>`; continue; }
-    html += `<div class="card" style="cursor:pointer;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;padding:4px" onclick="openDay(${d})"><div style="font-weight:bold">${d}</div><div style="font-size:10px;color:#00ffa3">0%</div></div>`;
+function load(){
+  try{
+    tasks=JSON.parse(localStorage.getItem(LS_TASKS))||[];
+    done=JSON.parse(localStorage.getItem(LS_DONE))||{};
+    viewMonth=localStorage.getItem(LS_MONTH)||today().slice(0,7);
+  }catch(e){tasks=[];done={};viewMonth=today().slice(0,7);}
+  if(!tasks.length && !localStorage.getItem(LS_SEEDED)){
+    localStorage.setItem(LS_SEEDED,'1');
+    seedDemo();
   }
-  grid.innerHTML = html;
 }
-function openDay(day) {
-  selectedDay = day;
-  document.getElementById('day-title').textContent = 'Tasks — Oct ' + day + ' (0%)';
-  const list = document.getElementById('day-tasks');
-  const dayTasks = tasks.filter(t => new Date(t.created).getDate() === day || true);
-  list.innerHTML = dayTasks.map((t, i) => {
-    const color = t.priority==='very important'?'red':t.priority==='important'?'orange':'';
-    const done = t.completed ? '<span style="color:#00ffa3;font-weight:bold">✓ COMPLETED</span>' : '<span style="color:#ff3b3b;font-weight:bold">✗ PENDING</span>';
-    return `<div class="task-row" onclick="toggleComplete(${i})" style="cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><div class="priority-dot ${color}"></div><span style="font-weight:bold">${t.name}</span></div><div style="font-size:11px">${done}</div></div>`;
-  }).join('') || '<p style="color:#556677;font-size:13px">No tasks for this day.</p>';
-  document.getElementById('edit-name').value = ''; document.getElementById('edit-priority').value = 'not so important';
+function seedDemo(){
+  var t=today();
+  tasks=[
+    {id:uid(),name:'Morning workout',priority:'very important',repeat:'daily',startDate:t,endDate:'',interval:1},
+    {id:uid(),name:'Read 20 pages',priority:'important',repeat:'daily',startDate:t,endDate:'',interval:1},
+    {id:uid(),name:'No sugar',priority:'not so important',repeat:'daily',startDate:t,endDate:'',interval:1}
+  ];
+  save();
+}
+
+/* ================= scheduling ================= */
+function isDue(task,dateStr){
+  if(!task.startDate||dateStr<task.startDate) return false;
+  if(task.endDate&&dateStr>task.endDate) return false;
+  var diff=dayDiff(task.startDate,dateStr);
+  if(diff<0) return false;
+  var d=parse(dateStr), s=parse(task.startDate);
+  switch(task.repeat){
+    case 'once':    return diff===0;
+    case 'daily':   return true;
+    case 'weekly':  return d.getDay()===s.getDay();
+    case 'monthly': return d.getDate()===s.getDate();
+    case 'interval':var n=parseInt(task.interval,10)||1;return n<=1?true:diff%n===0;
+  }
+  return false;
+}
+function dueOn(dateStr){return tasks.filter(function(t){return isDue(t,dateStr);});}
+function isDone(task,dateStr){return !!done[doneKey(task.id,dateStr)];}
+function toggleDone(task,dateStr){
+  var k=doneKey(task.id,dateStr);
+  if(done[k])delete done[k];else done[k]=true;
+  save();
+}
+function dayPct(dateStr){
+  var d=dueOn(dateStr);
+  if(!d.length)return {due:0,dn:0,pct:-1};
+  var n=d.filter(function(t){return isDone(t,dateStr);}).length;
+  return {due:d.length,dn:n,pct:Math.round(n/d.length*100)};
+}
+function monthDays(ym){
+  var y=+ym.slice(0,4),m=+ym.slice(5,7)-1;
+  var first=new Date(y,m,1);
+  var offset=(first.getDay()+6)%7; /* Monday-first */
+  var dim=new Date(y,m+1,0).getDate();
+  return {y:y,m:m,offset:offset,dim:dim};
+}
+function rangeStats(fromStr,toStr){
+  var due=0,dn=0;
+  for(var d=parse(fromStr);fmt(d)<=toStr;d.setDate(d.getDate()+1)){
+    var s=dayPct(fmt(d));
+    due+=s.due;dn+=s.dn;
+  }
+  return {due:due,dn:dn};
+}
+function streak(){
+  var s=0;
+  for(var d=new Date();s<365;d.setDate(d.getDate()-1)){
+    var st=dayPct(fmt(d));
+    if(st.due>0&&st.dn===st.due)s++;
+    else if(st.due===0)continue;
+    else break;
+  }
+  return s;
+}
+function skippedDays(){
+  if(!tasks.length)return 0;
+  var n=0;
+  var earliest=tasks.reduce(function(a,t){return t.startDate<a?t.startDate:a;},tasks[0].startDate);
+  for(var d=parse(earliest);fmt(d)<today();d.setDate(d.getDate()+1)){
+    var st=dayPct(fmt(d));
+    if(st.due>0&&st.dn<st.due)n++;
+  }
+  return n;
+}
+
+/* ================= rendering ================= */
+function $(id){return document.getElementById(id);}
+function pctClass(p){return p>=80?'g':p>=50?'o':'r';}
+function prioClass(p){return p==='very important'?'vimp':p==='important'?'imp':'nsi';}
+
+function renderCalendar(){
+  var md=monthDays(viewMonth), t=today(), grid=$('cal-grid');
+  var names=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  $('cal-title').textContent=names[md.m]+' '+md.y;
+  var html='';
+  for(var i=0;i<md.offset;i++)html+='<div class="day empty"></div>';
+  for(var d=1;d<=md.dim;d++){
+    var dateStr=md.y+'-'+pad(md.m+1)+'-'+pad(d);
+    var st=dayPct(dateStr);
+    var cls='day';
+    if(dateStr===t)cls+=' today';
+    if(st.pct<0)cls+=' no-tasks';
+    else if(st.dn===st.due)cls+=' done';
+    var pctTxt=st.pct<0?'—':st.pct+'%';
+    html+='<div class="'+cls+'" data-date="'+dateStr+'"><div class="num">'+d+'</div><div class="pct '+(st.pct<0?'':pctClass(st.pct))+'">'+pctTxt+'</div></div>';
+  }
+  grid.innerHTML=html;
+  Array.prototype.forEach.call(grid.children,function(el){
+    if(el.classList.contains('empty'))return;
+    el.addEventListener('click',function(){openDay(el.getAttribute('data-date'));});
+  });
+}
+
+function renderDay(dateStr){
+  selectedDate=dateStr;
+  var d=parse(dateStr);
+  $('day-title').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'}).toUpperCase();
+  var st=dayPct(dateStr);
+  var list=dueOn(dateStr);
+  var box=$('day-tasks');
+  if(!list.length){
+    box.innerHTML='<div class="empty-state">No tasks scheduled for this day.<br>Tap below to add one.</div>';
+  }else{
+    list.sort(function(a,b){
+      var order={'very important':0,'important':1,'not so important':2};
+      return order[a.priority]-order[b.priority];
+    });
+    box.innerHTML=list.map(function(t){
+      var dn=isDone(t,dateStr);
+      return '<div class="task-row'+(dn?' checked':'')+'" data-id="'+t.id+'">'+
+        '<div class="box">'+(dn?'&#10003;':'')+'</div>'+
+        '<div class="pdot '+prioClass(t.priority)+'"></div>'+
+        '<div class="name">'+esc(t.name)+'</div>'+
+        '<div class="meta">'+t.priority.split(' ')[0]+'</div></div>';
+    }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('.task-row'),function(el){
+      el.addEventListener('click',function(){
+        var id=el.getAttribute('data-id');
+        var task=tasks.filter(function(x){return x.id===id;})[0];
+        toggleDone(task,dateStr);
+        renderDay(dateStr);renderCalendar();
+      });
+    });
+  }
+  var pctEl=$('day-pct');
+  pctEl.textContent=st.pct<0?'—':st.pct+'%';
+  pctEl.className='day-pct'+(st.pct<0?'':' '+pctClass(st.pct));
+  $('day-bar').style.width=(st.pct<0?0:st.pct)+'%';
+  $('add-for-day').style.display=list.length?'none':'';
+  $('header-sub').textContent=st.due?st.dn+' of '+st.due+' completed':'';
   show('day');
 }
-let editingIndex = -1;
-function toggleComplete(i) { tasks[i].completed = !tasks[i].completed; save(); openDay(selectedDay); }
-function editTask(i) { editingIndex = i; document.getElementById('edit-name').value = tasks[i].name; document.getElementById('edit-priority').value = tasks[i].priority; }
-function updateTask() { if (editingIndex >= 0) { tasks[editingIndex].name = document.getElementById('edit-name').value; tasks[editingIndex].priority = document.getElementById('edit-priority').value; save(); openDay(selectedDay); } }
-renderCalendar(); renderTasks();
+
+function renderDashboard(){
+  var t=today();
+  var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-6);
+  var mStart=t.slice(0,8)+'01';
+  var all=rangeStats('2000-01-01',t);
+  var rate=all.due?Math.round(all.dn/all.due*100):0;
+  $('s-rate').textContent=rate+'%';
+  $('s-rate').className='v '+(rate>=80?'g':rate>=50?'o':'r');
+  $('s-streak').textContent=streak()+'d';
+  var td=dayPct(t);
+  $('s-today').textContent=td.due?td.dn+'/'+td.due:'0';
+  var wk=rangeStats(fmt(weekAgo),t);
+  $('s-week').textContent=wk.due?wk.dn+'/'+wk.due:'0';
+  var mo=rangeStats(mStart,t);
+  $('s-month').textContent=mo.due?mo.dn+'/'+mo.due:'0';
+  $('s-skips').textContent=skippedDays();
+
+  var wh='';
+  for(var i=6;i>=0;i--){
+    var d=new Date();d.setDate(d.getDate()-i);
+    var ds=fmt(d), st=dayPct(ds);
+    var lbl=d.toLocaleDateString('en-GB',{weekday:'short'});
+    var pct=st.pct<0?0:st.pct;
+    var col=st.pct<0?'var(--line)':pct>=80?'var(--green)':pct>=50?'#ffaa00':'var(--accent2)';
+    wh+='<div class="bar-row"><div class="lbl">'+lbl+'</div><div class="bar"><div style="width:'+pct+'%;background:'+col+'"></div></div><div class="val">'+(st.pct<0?'—':pct+'%')+'</div></div>';
+  }
+  $('week-bars').innerHTML=wh;
+
+  var ph='';
+  [['very important','VERY IMPORTANT','vimp'],['important','IMPORTANT','imp'],['not so important','NOT SO IMPORTANT','nsi']].forEach(function(p){
+    var due=0,dn=0;
+    for(var dd=parse('2000-01-01');fmt(dd)<=t;dd.setDate(dd.getDate()+1)){
+      dueOn(fmt(dd)).forEach(function(task){
+        if(task.priority!==p[0])return;
+        due++;if(isDone(task,fmt(dd)))dn++;
+      });
+    }
+    var pct=due?Math.round(dn/due*100):0;
+    var col=p[2]==='vimp'?'var(--accent2)':p[2]==='imp'?'#ffaa00':'var(--green)';
+    ph+='<div class="bar-row"><div class="lbl">'+p[1]+'</div><div class="bar"><div style="width:'+pct+'%;background:'+col+'"></div></div><div class="val">'+pct+'%</div></div>';
+  });
+  $('prio-bars').innerHTML=ph;
+
+  $('active-tags').innerHTML=tasks.length?tasks.map(function(task){
+    var rep={once:'once',daily:'daily',weekly:'weekly',monthly:'monthly',interval:'every '+task.interval+'d'}[task.repeat]||task.repeat;
+    return '<span class="tag '+prioClass(task.priority)+'">'+esc(task.name)+' · '+rep+'</span>';
+  }).join(''):'<span style="font-size:11px;color:var(--dim)">No tasks yet</span>';
+  show('dashboard');
+}
+
+/* ================= screens / nav ================= */
+var SCREENS=['calendar','day','add','dashboard'];
+function show(name){
+  SCREENS.forEach(function(s){$('screen-'+s).classList.toggle('hidden',s!==name);});
+}
+function openDay(dateStr){renderDay(dateStr);}
+function backToCalendar(){show('calendar');renderCalendar();}
+
+var form={priority:'not so important',repeat:'once'};
+function resetForm(prefillDate){
+  form.priority='not so important';form.repeat='once';
+  $('f-name').value='';
+  $('f-start').value=prefillDate||today();
+  $('f-end').value='';
+  $('f-interval').value=3;
+  $('add-title').textContent=prefillDate?'TASK FOR '+parse(prefillDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase():'NEW TASK';
+  $('add-hint').textContent='';
+  syncChips();
+  show('add');
+}
+function syncChips(){
+  Array.prototype.forEach.call($('f-priority').children,function(c){
+    c.classList.toggle('on',c.getAttribute('data-v')===form.priority);
+  });
+  Array.prototype.forEach.call($('f-repeat').children,function(c){
+    c.classList.toggle('on',c.getAttribute('data-v')===form.repeat);
+  });
+  $('interval-wrap').classList.toggle('hidden',form.repeat!=='interval');
+}
+function saveTask(){
+  var name=$('f-name').value.trim();
+  if(!name){$('add-hint').textContent='Enter a task name';return;}
+  var start=$('f-start').value||today();
+  var end=$('f-end').value||'';
+  if(end&&end<start){$('add-hint').textContent='End date is before start date';return;}
+  var interval=parseInt($('f-interval').value,10)||1;
+  tasks.push({id:uid(),name:name,priority:form.priority,repeat:form.repeat,startDate:start,endDate:end,interval:interval});
+  save();
+  if(selectedDate&&form.repeat==='once'&&start===selectedDate){
+    openDay(selectedDate);
+  }else{
+    backToCalendar();
+  }
+}
+
+/* ================= wiring ================= */
+Array.prototype.forEach.call($('f-priority').children,function(c){
+  c.addEventListener('click',function(){form.priority=c.getAttribute('data-v');syncChips();});
+});
+Array.prototype.forEach.call($('f-repeat').children,function(c){
+  c.addEventListener('click',function(){form.repeat=c.getAttribute('data-v');syncChips();});
+});
+$('save-task').addEventListener('click',saveTask);
+$('f-name').addEventListener('keydown',function(e){if(e.key==='Enter')saveTask();});
+$('nav-new').addEventListener('click',function(){resetForm();});
+$('nav-dash').addEventListener('click',renderDashboard);
+$('day-back').addEventListener('click',backToCalendar);
+$('add-back').addEventListener('click',backToCalendar);
+$('dash-back').addEventListener('click',backToCalendar);
+$('add-for-day').addEventListener('click',function(){resetForm(selectedDate);});
+$('prev-month').addEventListener('click',function(){shiftMonth(-1);});
+$('next-month').addEventListener('click',function(){shiftMonth(1);});
+function shiftMonth(n){
+  var md=monthDays(viewMonth);
+  var d=new Date(md.y,md.m+n,1);
+  viewMonth=fmt(d).slice(0,7);
+  save();renderCalendar();
+}
+
+/* init */
+load();
+viewMonth=viewMonth||today().slice(0,7);
+renderCalendar();
+})();
 </script>
 </body>
 </html>
