@@ -25,6 +25,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android NDK and CMake
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "ndk;27.0.12077973" "cmake;3.22.1"
+
       # Stable signing key: the first run generates it and caches it; later
       # runs reuse the same key so installed apps accept future APK updates.
       # (If the cache is ever evicted, the signature changes and the app must

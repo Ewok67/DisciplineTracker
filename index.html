@@ -126,6 +126,22 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
   text-shadow:0 1px 2px rgba(0,0,0,.35)}
 #nav-new:active{transform:scale(.94)}
 .back-btn{background:transparent;border:none;color:var(--muted);font-size:12px;letter-spacing:1px;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
+
+/* ---------- Assistant chat ---------- */
+#chat-log{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+.bubble{max-width:85%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.bubble.user{align-self:flex-end;background:linear-gradient(180deg,#3a3b40,#222326);border:1px solid #2f3034;border-bottom-right-radius:5px;color:var(--fg)}
+.bubble.agent{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px}
+.bubble.typing{color:var(--dim);font-style:italic}
+#chat-dock{position:sticky;bottom:0;background:#000;padding-top:8px}
+#chat-input-row{display:flex;gap:8px;align-items:center}
+#chat-input{flex:1;padding:12px 14px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:24px;font-size:13px;outline:none}
+#chat-input:focus{border-color:var(--accent)}
+#chat-send{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;
+  background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
+  border:1px solid rgba(255,255,255,.3);box-shadow:var(--shine),0 4px 14px rgba(255,107,53,.4)}
+#chat-send:active{transform:scale(.94)}
+.dl-note{font-size:10px;color:var(--dim);margin-top:10px;text-align:center;line-height:1.5}
 </style>
 </head>
 <body>
@@ -262,6 +278,20 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
       <button class="btn btn-primary" id="check-updates" style="margin-top:0">CHECK FOR UPDATES</button>
       <div class="hint" id="update-status"></div>
     </div>
+
+    <div class="card2">
+      <h3>Assistant</h3>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Ask questions about your habits and progress. Runs entirely on your phone — a one-time ~1.1 GB model download.</p>
+      <button class="btn btn-primary" id="open-assistant" style="margin-top:0">OPEN ASSISTANT</button>
+    </div>
+  </main>
+
+  <!-- ASSISTANT -->
+  <main id="screen-chat" class="hidden">
+    <button class="back-btn" id="chat-back">&#8249; BACK</button>
+    <div class="day-head"><h2>ASSISTANT</h2></div>
+    <div id="chat-log"></div>
+    <div id="chat-dock"></div>
   </main>
 
   <nav>
@@ -567,7 +597,7 @@ function renderDashboard(){
 }
 
 /* ================= screens / nav ================= */
-var SCREENS=['calendar','day','add','dashboard','tasks','settings'];
+var SCREENS=['calendar','day','add','dashboard','tasks','settings','chat'];
 function show(name){
   SCREENS.forEach(function(s){$('screen-'+s).classList.toggle('hidden',s!==name);});
   var sg=$('nav-settings');
@@ -649,6 +679,136 @@ function checkUpdates(){
   }
 }
 
+/* ================= assistant ================= */
+var chatState='unknown';
+var chatTimer=null;
+
+/** Compact snapshot of everything the model may need (last 45 days). */
+function buildDataSnapshot(){
+  var t=today();
+  var cutoff=(function(){var d=parse(t);d.setDate(d.getDate()-45);return fmt(d);})();
+  var snap={today:t,tasks:[],done:{},stats:{}};
+  tasks.forEach(function(x){
+    var o={n:x.name,p:x.priority,r:x.repeat,s:x.startDate};
+    if(x.endDate)o.e=x.endDate;
+    if(x.defaultDone)o.d=true;
+    snap.tasks.push(o);
+  });
+  Object.keys(done).forEach(function(k){
+    var parts=k.split('|'),date=parts[1];
+    if(date<cutoff)return;
+    var name=(tasks.filter(function(x){return x.id===parts[0];})[0]||{}).name||'?';
+    if(!snap.done[date])snap.done[date]=[];
+    snap.done[date].push(done[k]===true?name:'!'+name);
+  });
+  var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-6);
+  snap.stats={
+    todayPct:dayPct(t).pct,
+    streak:streak(),
+    weekDone:rangeStats(fmt(weekAgo),t),
+    skips:skippedDays()
+  };
+  return JSON.stringify(snap);
+}
+
+function addBubble(who,text){
+  var log=$('chat-log');
+  var div=document.createElement('div');
+  div.className='bubble '+who;
+  div.textContent=text;
+  log.appendChild(div);
+  var main=$('screen-chat');
+  main.scrollTop=main.scrollHeight;
+  return div;
+}
+
+function renderChatDock(state){
+  var dock=$('chat-dock');
+  chatState=state;
+  if(state==='unavailable'){
+    dock.innerHTML='<div class="dl-note">The assistant only runs inside the installed app on your phone.</div>';
+  }else if(state.indexOf('downloading')===0){
+    var pct=state.split(':')[1]||'0';
+    dock.innerHTML='<div class="progress" style="margin:0"><div style="width:'+pct+'%"></div></div>'+
+      '<div class="dl-note">Downloading assistant model… '+pct+'%</div>';
+  }else if(state==='missing'||state==='loading'||state==='error'){
+    var msg=state==='error'?'Download failed — check your connection and try again.':'One-time download of a ~1.1 GB model. It runs fully offline afterwards.';
+    dock.innerHTML='<button class="btn btn-primary" id="dl-model" style="margin-top:0">DOWNLOAD MODEL</button>'+
+      '<div class="dl-note">'+msg+'</div>';
+    $('dl-model').addEventListener('click',function(){
+      if(window.AndroidBridge&&window.AndroidBridge.agentDownload){
+        renderChatDock('downloading:0');
+        window.AndroidBridge.agentDownload();
+      }
+    });
+  }else{ /* ready */
+    dock.innerHTML='<div id="chat-input-row"><input id="chat-input" placeholder="Ask about your habits…" autocomplete="off"><button id="chat-send">&#10132;</button></div>';
+    $('chat-send').addEventListener('click',sendQuestion);
+    $('chat-input').addEventListener('keydown',function(e){if(e.key==='Enter')sendQuestion();});
+    setTimeout(function(){var i=$('chat-input');if(i)i.focus();},50);
+  }
+}
+
+function sendQuestion(){
+  var input=$('chat-input');
+  var q=(input.value||'').trim();
+  if(!q)return;
+  input.value='';
+  addBubble('user',q);
+  var typing=addBubble('agent typing','thinking…');
+  if(window.AndroidBridge&&window.AndroidBridge.agentAsk){
+    window.AndroidBridge.agentAsk(q,buildDataSnapshot());
+  }else{
+    typing.textContent='Assistant only works inside the installed app.';
+  }
+}
+
+window.__onAgentAnswer=function(text){
+  var t=document.querySelector('.bubble.typing');
+  if(t)t.remove();
+  addBubble('agent',text);
+};
+window.__onAgentError=function(code){
+  var t=document.querySelector('.bubble.typing');
+  if(t)t.remove();
+  var msg=code==='model-not-ready'?'Model not loaded yet.':code==='empty'?'No answer generated. Try rephrasing.':'Something went wrong.';
+  addBubble('agent',msg);
+};
+window.__onAgentProgress=function(percent){
+  if(chatState.indexOf('downloading')===0)renderChatDock('downloading:'+percent);
+};
+window.__onAgentStatus=function(state){
+  if(state==='ready'){
+    var log=$('chat-log');
+    log.innerHTML='';
+    addBubble('agent','Model ready. Ask me anything about your habits — e.g. "how was my week?" or "which tasks am I skipping?".');
+  }
+  renderChatDock(state);
+};
+
+function openChat(){
+  show('chat');
+  var log=$('chat-log');
+  log.innerHTML='';
+  $('chat-dock').innerHTML='';
+  if(window.AndroidBridge&&window.AndroidBridge.agentStatus){
+    var st=window.AndroidBridge.agentStatus();
+    if(st==='ready'){
+      addBubble('agent','Model ready. Ask me anything about your habits — e.g. "how was my week?" or "which tasks am I skipping?".');
+      renderChatDock('ready');
+    }else{
+      renderChatDock(st);
+    }
+    if(chatTimer)clearInterval(chatTimer);
+    chatTimer=setInterval(function(){
+      var s=window.AndroidBridge.agentStatus();
+      if(s!==chatState)renderChatDock(s);
+    },1000);
+  }else{
+    renderChatDock('unavailable');
+  }
+}
+
 /* ================= wiring ================= */
 Array.prototype.forEach.call($('f-priority').children,function(c){
   c.addEventListener('click',function(){form.priority=c.getAttribute('data-v');syncChips();});
@@ -665,6 +825,11 @@ $('nav-new').addEventListener('click',renderTasks);
 $('nav-settings').addEventListener('click',renderSettings);
 $('settings-back').addEventListener('click',backToCalendar);
 $('check-updates').addEventListener('click',checkUpdates);
+$('open-assistant').addEventListener('click',openChat);
+$('chat-back').addEventListener('click',function(){
+  if(chatTimer){clearInterval(chatTimer);chatTimer=null;}
+  backToCalendar();
+});
 $('tasks-back').addEventListener('click',backToCalendar);
 $('tasks-add').addEventListener('click',function(){resetForm();});
 $('nav-dash').addEventListener('click',renderDashboard);
