@@ -171,6 +171,13 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
       <div class="chip vimp" data-v="very important">VERY<br>IMPORTANT</div>
     </div>
 
+    <label>Starts as</label>
+    <div class="chips" id="f-default">
+      <div class="chip rep on" data-v="no">NEEDS<br>CHECKING</div>
+      <div class="chip rep" data-v="yes">ALREADY<br>CHECKED</div>
+    </div>
+    <div class="hint" id="default-hint" style="margin-bottom:2px">Check it off each day when you complete it.</div>
+
     <label>Repeat</label>
     <div class="chips" id="f-repeat">
       <div class="chip rep on" data-v="once">ONCE</div>
@@ -274,9 +281,9 @@ function load(){
 function seedDemo(){
   var t=today();
   tasks=[
-    {id:uid(),name:'Morning workout',priority:'very important',repeat:'daily',startDate:t,endDate:'',interval:1},
-    {id:uid(),name:'Read 20 pages',priority:'important',repeat:'daily',startDate:t,endDate:'',interval:1},
-    {id:uid(),name:'No sugar',priority:'not so important',repeat:'daily',startDate:t,endDate:'',interval:1}
+    {id:uid(),name:'Morning workout',priority:'very important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
+    {id:uid(),name:'Read 20 pages',priority:'important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
+    {id:uid(),name:'No sugar',priority:'not so important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:true}
   ];
   save();
 }
@@ -298,10 +305,19 @@ function isDue(task,dateStr){
   return false;
 }
 function dueOn(dateStr){return tasks.filter(function(t){return isDue(t,dateStr);});}
-function isDone(task,dateStr){return !!done[doneKey(task.id,dateStr)];}
+function isDone(task,dateStr){
+  var v=done[doneKey(task.id,dateStr)];
+  return task.defaultDone?v!==false:v===true;
+}
 function toggleDone(task,dateStr){
   var k=doneKey(task.id,dateStr);
-  if(done[k])delete done[k];else done[k]=true;
+  if(isDone(task,dateStr)){
+    done[k]=false;            /* explicitly break it for this day only */
+  }else if(task.defaultDone){
+    delete done[k];           /* back to the default: stays checked */
+  }else{
+    done[k]=true;
+  }
   save();
 }
 function dayPct(dateStr){
@@ -393,9 +409,10 @@ function renderTasks(){
       }
       var rep={once:'ONCE',daily:'DAILY',weekly:'WEEKLY',monthly:'MONTHLY',interval:'EVERY '+task.interval+'D'}[task.repeat]||task.repeat;
       var range=shortDate(task.startDate)+(task.endDate?' → '+shortDate(task.endDate):'');
+      var stays=task.defaultDone?' · STAYS ✓':'';
       return '<div class="task-row" style="cursor:default"><div class="pdot '+prioClass(task.priority)+'"></div>'+
         '<div style="flex:1;min-width:0"><div class="name">'+esc(task.name)+'</div>'+
-        '<div class="task-meta">'+rep+' · '+range+'</div></div>'+
+        '<div class="task-meta">'+rep+' · '+range+stays+'</div></div>'+
         '<div class="due-badge '+bcls+'">'+badge+'</div>'+
         '<div class="del-btn" data-id="'+task.id+'">&#215;</div></div>';
     }).join('');
@@ -531,9 +548,9 @@ function show(name){
 function openDay(dateStr){renderDay(dateStr);}
 function backToCalendar(){show('calendar');renderCalendar();}
 
-var form={priority:'not so important',repeat:'once'};
+var form={priority:'not so important',repeat:'once',defaultDone:false};
 function resetForm(prefillDate){
-  form.priority='not so important';form.repeat='once';
+  form.priority='not so important';form.repeat='once';form.defaultDone=false;
   $('f-name').value='';
   $('f-start').value=prefillDate||today();
   $('f-end').value='';
@@ -550,6 +567,12 @@ function syncChips(){
   Array.prototype.forEach.call($('f-repeat').children,function(c){
     c.classList.toggle('on',c.getAttribute('data-v')===form.repeat);
   });
+  Array.prototype.forEach.call($('f-default').children,function(c){
+    c.classList.toggle('on',c.getAttribute('data-v')===(form.defaultDone?'yes':'no'));
+  });
+  $('default-hint').textContent=form.defaultDone
+    ?'Stays checked — uncheck it only on days you slip.'
+    :'Check it off each day when you complete it.';
   $('interval-wrap').classList.toggle('hidden',form.repeat!=='interval');
 }
 function saveTask(){
@@ -559,7 +582,7 @@ function saveTask(){
   var end=$('f-end').value||'';
   if(end&&end<start){$('add-hint').textContent='End date is before start date';return;}
   var interval=parseInt($('f-interval').value,10)||1;
-  tasks.push({id:uid(),name:name,priority:form.priority,repeat:form.repeat,startDate:start,endDate:end,interval:interval});
+  tasks.push({id:uid(),name:name,priority:form.priority,repeat:form.repeat,startDate:start,endDate:end,interval:interval,defaultDone:form.defaultDone});
   save();
   if(selectedDate&&form.repeat==='once'&&start===selectedDate){
     openDay(selectedDate);
@@ -574,6 +597,9 @@ Array.prototype.forEach.call($('f-priority').children,function(c){
 });
 Array.prototype.forEach.call($('f-repeat').children,function(c){
   c.addEventListener('click',function(){form.repeat=c.getAttribute('data-v');syncChips();});
+});
+Array.prototype.forEach.call($('f-default').children,function(c){
+  c.addEventListener('click',function(){form.defaultDone=c.getAttribute('data-v')==='yes';syncChips();});
 });
 $('save-task').addEventListener('click',saveTask);
 $('f-name').addEventListener('keydown',function(e){if(e.key==='Enter')saveTask();});
