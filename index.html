@@ -103,21 +103,24 @@ input:focus{border-color:var(--accent)}
 .legend{display:flex;gap:14px;justify-content:center;margin:10px 0 2px}
 .legend span{font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px;letter-spacing:1px}
 
-/* ---------- Bottom bar: settings + centered pill + round FAB ---------- */
+/* ---------- Bottom bar: hamburger + centered menu + round FAB ---------- */
 nav{position:relative;display:flex;justify-content:center;align-items:center;padding:12px 16px 16px;border-top:1px solid var(--line);flex-shrink:0;background:#000}
-#nav-settings{position:absolute;left:16px;width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:17px;
+#nav-more{width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:17px;
   background:linear-gradient(180deg,#1c1d21 0%,#0e0f11 100%);
   border:1px solid #2c2d31;
   box-shadow:var(--shine);
   display:flex;align-items:center;justify-content:center}
-#nav-settings:active{color:var(--fg);filter:brightness(1.3)}
-#nav-settings.active{color:var(--fg);border-color:#45464c;background:linear-gradient(180deg,#2a2b2f 0%,#16171a 100%)}
-#nav-dash{min-width:180px;padding:14px 30px;border-radius:30px;font-size:12px;font-weight:800;letter-spacing:2px;cursor:pointer;color:#04120c;
-  background:linear-gradient(180deg,#3ff5b0 0%,#00e896 45%,#00bd76 100%);
-  border:1px solid rgba(255,255,255,.22);
-  box-shadow:var(--shine),0 6px 18px rgba(0,232,150,.35);
-  text-shadow:0 1px 0 rgba(255,255,255,.3)}
-#nav-dash:active{transform:translateY(1px);filter:brightness(.95)}
+#nav-more:active{color:var(--fg);filter:brightness(1.3)}
+#nav-more.active{color:var(--fg);border-color:#45464c;background:linear-gradient(180deg,#2a2b2f 0%,#16171a 100%)}
+#nav-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:4px;padding:6px;min-width:196px;z-index:30;
+  background:var(--card);border:1px solid #45464c;border-radius:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.65)}
+.menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  background:transparent;border:none;cursor:pointer;color:var(--fg);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-align:left}
+.menu-item:active{background:#222326}
+.menu-item svg{color:var(--muted);flex-shrink:0}
 #nav-new{position:absolute;right:16px;width:56px;height:56px;border-radius:50%;font-size:28px;font-weight:300;line-height:1;cursor:pointer;color:#fff;
   background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
   border:1px solid rgba(255,255,255,.3);
@@ -278,12 +281,6 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
       <button class="btn btn-primary" id="check-updates" style="margin-top:0">CHECK FOR UPDATES</button>
       <div class="hint" id="update-status"></div>
     </div>
-
-    <div class="card2">
-      <h3>Assistant</h3>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Ask questions about your habits and progress. Runs entirely on your phone — a one-time ~1.1 GB model download.</p>
-      <button class="btn btn-primary" id="open-assistant" style="margin-top:0">OPEN ASSISTANT</button>
-    </div>
   </main>
 
   <!-- ASSISTANT -->
@@ -295,9 +292,22 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
   </main>
 
   <nav>
-    <button id="nav-settings" aria-label="Settings">&#9881;</button>
-    <button id="nav-dash">DASHBOARD</button>
+    <button id="nav-more" aria-label="Menu">&#8801;</button>
     <button id="nav-new" aria-label="New task">+</button>
+    <div id="nav-menu" class="hidden">
+      <button class="menu-item" id="menu-settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        SETTINGS
+      </button>
+      <button class="menu-item" id="menu-dash">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        DASHBOARD
+      </button>
+      <button class="menu-item" id="menu-assistant">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        ASSISTANT
+      </button>
+    </div>
   </nav>
 </div>
 
@@ -600,11 +610,13 @@ function renderDashboard(){
 var SCREENS=['calendar','day','add','dashboard','tasks','settings','chat'];
 function show(name){
   SCREENS.forEach(function(s){$('screen-'+s).classList.toggle('hidden',s!==name);});
-  var sg=$('nav-settings');
-  if(sg)sg.classList.toggle('active',name==='settings');
+}
+function closeMenu(){
+  var m=$('nav-menu');if(m)m.classList.add('hidden');
+  var b=$('nav-more');if(b)b.classList.remove('active');
 }
 function openDay(dateStr){renderDay(dateStr);}
-function backToCalendar(){show('calendar');renderCalendar();}
+function backToCalendar(){closeMenu();show('calendar');renderCalendar();}
 
 var form={priority:'not so important',repeat:'once',defaultDone:false};
 function resetForm(prefillDate){
@@ -821,18 +833,24 @@ Array.prototype.forEach.call($('f-default').children,function(c){
 });
 $('save-task').addEventListener('click',saveTask);
 $('f-name').addEventListener('keydown',function(e){if(e.key==='Enter')saveTask();});
-$('nav-new').addEventListener('click',renderTasks);
-$('nav-settings').addEventListener('click',renderSettings);
+$('nav-new').addEventListener('click',function(){closeMenu();renderTasks();});
+$('nav-more').addEventListener('click',function(){
+  var m=$('nav-menu');
+  var open=m.classList.toggle('hidden');
+  $('nav-more').classList.toggle('active',!open);
+});
+$('screen-calendar').addEventListener('click',function(){closeMenu();});
+$('menu-settings').addEventListener('click',function(){closeMenu();renderSettings();});
+$('menu-dash').addEventListener('click',function(){closeMenu();renderDashboard();});
+$('menu-assistant').addEventListener('click',function(){closeMenu();openChat();});
 $('settings-back').addEventListener('click',backToCalendar);
 $('check-updates').addEventListener('click',checkUpdates);
-$('open-assistant').addEventListener('click',openChat);
 $('chat-back').addEventListener('click',function(){
   if(chatTimer){clearInterval(chatTimer);chatTimer=null;}
   backToCalendar();
 });
 $('tasks-back').addEventListener('click',backToCalendar);
 $('tasks-add').addEventListener('click',function(){resetForm();});
-$('nav-dash').addEventListener('click',renderDashboard);
 $('day-back').addEventListener('click',backToCalendar);
 $('add-back').addEventListener('click',backToCalendar);
 $('dash-back').addEventListener('click',backToCalendar);
