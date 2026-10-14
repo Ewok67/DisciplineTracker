@@ -10,8 +10,8 @@ android {
         applicationId 'com.ewok67.disciplinetracker'
         minSdk 24
         targetSdk 34
-        versionCode 2
-        versionName '1.0.1'
+        versionCode 3
+        versionName '1.0.2'
         // 64-bit only: the assistant needs the RAM, and llama.cpp's fp16
         // kernels require arm64. Every phone that can run it is arm64.
         ndk {

@@ -56,7 +56,6 @@ main::-webkit-scrollbar{display:none}
 .task-row.checked .name{text-decoration:line-through}
 .task-row .meta{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
 .pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.pdot.nsi{background:#00ffa3} .pdot.imp{background:#ffaa00} .pdot.vimp{background:var(--accent2)}
 .empty-state{text-align:center;color:var(--dim);font-size:12px;padding:30px 10px}
 .task-meta{font-size:9px;color:var(--dim);margin-top:3px;letter-spacing:.5px}
 .del-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,59,59,.45);background:rgba(255,59,59,.12);color:var(--accent2);font-size:15px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1}
@@ -74,7 +73,6 @@ input:focus{border-color:var(--accent)}
 .chips{display:flex;gap:6px}
 .chip{flex:1;padding:11px 4px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;text-align:center}
 .chip.on{color:#0a0a0a}
-.chip.on.nsi{background:linear-gradient(180deg,#5cffc4,#00e08a);box-shadow:0 0 12px rgba(0,255,163,.4)} .chip.on.imp{background:linear-gradient(180deg,#ffc35e,#ffa000);box-shadow:0 0 12px rgba(255,170,0,.4)} .chip.on.vimp{background:linear-gradient(180deg,#ff6b6b,#e02020);color:#fff;box-shadow:0 0 12px rgba(255,59,59,.45)}
 .chip.rep.on{background:linear-gradient(180deg,#ffb066,#f4560d);color:#fff;border-color:rgba(255,255,255,.3);box-shadow:0 0 12px rgba(255,107,53,.4)}
 .row2{display:flex;gap:8px}.row2>div{flex:1}
 .btn{width:100%;padding:15px;border:none;border-radius:13px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:20px}
@@ -96,12 +94,6 @@ input:focus{border-color:var(--accent)}
 .bar{flex:1;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
 .bar>div{height:100%;border-radius:4px}
 .bar-row .val{width:34px;text-align:right;font-size:10px;font-weight:700;flex-shrink:0}
-.tag{display:inline-block;padding:5px 11px;border-radius:20px;font-size:9px;font-weight:700;margin:2px 4px 2px 0}
-.tag.nsi{background:rgba(0,255,163,.15);color:var(--green)}
-.tag.imp{background:rgba(255,170,0,.15);color:#ffaa00}
-.tag.vimp{background:rgba(255,59,59,.15);color:var(--accent2)}
-.legend{display:flex;gap:14px;justify-content:center;margin:10px 0 2px}
-.legend span{font-size:8px;color:var(--dim);display:flex;align-items:center;gap:4px;letter-spacing:1px}
 
 /* ---------- Bottom bar: hamburger + centered menu + round FAB ---------- */
 nav{position:relative;display:flex;justify-content:center;align-items:center;padding:12px 16px 16px;border-top:1px solid var(--line);flex-shrink:0;background:#000}
@@ -163,11 +155,6 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
     </div>
     <div class="dow"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
     <div class="grid" id="cal-grid"></div>
-    <div class="legend">
-      <span><span class="pdot nsi"></span>not so important</span>
-      <span><span class="pdot imp"></span>important</span>
-      <span><span class="pdot vimp"></span>very important</span>
-    </div>
   </main>
 
   <!-- DAY -->
@@ -189,13 +176,6 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
 
     <label>Task name</label>
     <input id="f-name" placeholder="e.g. Drink 2L water" autocomplete="off">
-
-    <label>Priority</label>
-    <div class="chips" id="f-priority">
-      <div class="chip nsi" data-v="not so important">NOT SO<br>IMPORTANT</div>
-      <div class="chip imp" data-v="important">IMPORTANT</div>
-      <div class="chip vimp" data-v="very important">VERY<br>IMPORTANT</div>
-    </div>
 
     <label>Starts as</label>
     <div class="chips" id="f-default">
@@ -260,8 +240,13 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
     </div>
 
     <div class="card2">
-      <h3>By priority</h3>
-      <div id="prio-bars"></div>
+      <h3>Task completion</h3>
+      <div id="task-bars"></div>
+    </div>
+
+    <div class="card2">
+      <h3>By day of week</h3>
+      <div id="dow-bars"></div>
     </div>
   </main>
 
@@ -347,9 +332,9 @@ function load(){
 function seedDemo(){
   var t=today();
   tasks=[
-    {id:uid(),name:'Morning workout',priority:'very important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
-    {id:uid(),name:'Read 20 pages',priority:'important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
-    {id:uid(),name:'No sugar',priority:'not so important',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:true}
+    {id:uid(),name:'Morning workout',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
+    {id:uid(),name:'Read 20 pages',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
+    {id:uid(),name:'No sugar',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:true}
   ];
   save();
 }
@@ -431,7 +416,6 @@ function skippedDays(){
 /* ================= rendering ================= */
 function $(id){return document.getElementById(id);}
 function pctClass(p){return p>=80?'g':p>=50?'o':'r';}
-function prioClass(p){return p==='very important'?'vimp':p==='important'?'imp':'nsi';}
 function shortDate(ds){return parse(ds).toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();}
 
 /** Next calendar date (>= today, <= endDate) on which this task is due. null = never again. */
@@ -476,7 +460,7 @@ function renderTasks(){
       var rep={once:'ONCE',daily:'DAILY',weekly:'WEEKLY',monthly:'MONTHLY',interval:'EVERY '+task.interval+'D'}[task.repeat]||task.repeat;
       var range=shortDate(task.startDate)+(task.endDate?' → '+shortDate(task.endDate):'');
       var stays=task.defaultDone?' · STAYS ✓':'';
-      return '<div class="task-row" style="cursor:default"><div class="pdot '+prioClass(task.priority)+'"></div>'+
+      return '<div class="task-row" style="cursor:default">'+
         '<div style="flex:1;min-width:0"><div class="name">'+esc(task.name)+'</div>'+
         '<div class="task-meta">'+rep+' · '+range+stays+'</div></div>'+
         '<div class="due-badge '+bcls+'">'+badge+'</div>'+
@@ -530,17 +514,11 @@ function renderDay(dateStr){
   if(!list.length){
     box.innerHTML='<div class="empty-state">No tasks scheduled for this day.<br>Tap below to add one.</div>';
   }else{
-    list.sort(function(a,b){
-      var order={'very important':0,'important':1,'not so important':2};
-      return order[a.priority]-order[b.priority];
-    });
     box.innerHTML=list.map(function(t){
       var dn=isDone(t,dateStr);
       return '<div class="task-row'+(dn?' checked':'')+'" data-id="'+t.id+'">'+
         '<div class="box">'+(dn?'&#10003;':'')+'</div>'+
-        '<div class="pdot '+prioClass(t.priority)+'"></div>'+
-        '<div class="name">'+esc(t.name)+'</div>'+
-        '<div class="meta">'+t.priority.split(' ')[0]+'</div></div>';
+        '<div class="name">'+esc(t.name)+'</div></div>';
     }).join('');
     Array.prototype.forEach.call(box.querySelectorAll('.task-row'),function(el){
       el.addEventListener('click',function(){
@@ -588,20 +566,40 @@ function renderDashboard(){
   }
   $('week-bars').innerHTML=wh;
 
-  var ph='';
-  [['very important','VERY IMPORTANT','vimp'],['important','IMPORTANT','imp'],['not so important','NOT SO IMPORTANT','nsi']].forEach(function(p){
+  /* per-task completion (all time), worst first */
+  var tb='';
+  var taskStats=tasks.map(function(task){
     var due=0,dn=0;
-    for(var dd=parse('2000-01-01');fmt(dd)<=t;dd.setDate(dd.getDate()+1)){
-      dueOn(fmt(dd)).forEach(function(task){
-        if(task.priority!==p[0])return;
-        due++;if(isDone(task,fmt(dd)))dn++;
-      });
+    for(var dd=parse(task.startDate);fmt(dd)<=t;dd.setDate(dd.getDate()+1)){
+      if(!isDue(task,fmt(dd)))continue;
+      due++;if(isDone(task,fmt(dd)))dn++;
     }
-    var pct=due?Math.round(dn/due*100):0;
-    var col=p[2]==='vimp'?'var(--accent2)':p[2]==='imp'?'#ffaa00':'var(--green)';
-    ph+='<div class="bar-row"><div class="lbl">'+p[1]+'</div><div class="bar"><div style="width:'+pct+'%;background:'+col+'"></div></div><div class="val">'+pct+'%</div></div>';
+    return {name:task.name,due:due,dn:dn,pct:due?Math.round(dn/due*100):0};
+  }).sort(function(a,b){return a.pct-b.pct;});
+  taskStats.forEach(function(s){
+    var col=s.pct>=80?'var(--green)':s.pct>=50?'#ffaa00':'var(--accent2)';
+    tb+='<div class="bar-row"><div class="lbl">'+esc(s.name)+'</div><div class="bar"><div style="width:'+s.pct+'%;background:'+col+'"></div></div><div class="val">'+s.pct+'%</div></div>';
   });
-  $('prio-bars').innerHTML=ph;
+  $('task-bars').innerHTML=tb||'<p style="font-size:11px;color:var(--dim)">No tasks yet</p>';
+
+  /* day-of-week performance, all time */
+  var dowNames=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  var dowStats=[0,0,0,0,0,0,0].map(function(){return {due:0,dn:0};});
+  for(var dd=parse('2000-01-01');fmt(dd)<=t;dd.setDate(dd.getDate()+1)){
+    var st=dayPct(fmt(dd));
+    if(st.due>0){
+      var idx=(dd.getDay()+6)%7;
+      dowStats[idx].due+=st.due;
+      dowStats[idx].dn+=st.dn;
+    }
+  }
+  var db='';
+  for(var i=0;i<7;i++){
+    var pct=dowStats[i].due?Math.round(dowStats[i].dn/dowStats[i].due*100):0;
+    var col=dowStats[i].due===0?'var(--line)':pct>=80?'var(--green)':pct>=50?'#ffaa00':'var(--accent2)';
+    db+='<div class="bar-row"><div class="lbl">'+dowNames[i]+'</div><div class="bar"><div style="width:'+pct+'%;background:'+col+'"></div></div><div class="val">'+(dowStats[i].due?pct+'%':'—')+'</div></div>';
+  }
+  $('dow-bars').innerHTML=db;
 
   show('dashboard');
 }
@@ -618,9 +616,9 @@ function closeMenu(){
 function openDay(dateStr){renderDay(dateStr);}
 function backToCalendar(){closeMenu();show('calendar');renderCalendar();}
 
-var form={priority:'not so important',repeat:'once',defaultDone:false};
+var form={repeat:'once',defaultDone:false};
 function resetForm(prefillDate){
-  form.priority='not so important';form.repeat='once';form.defaultDone=false;
+  form.repeat='once';form.defaultDone=false;
   $('f-name').value='';
   $('f-start').value=prefillDate||today();
   $('f-end').value='';
@@ -631,9 +629,6 @@ function resetForm(prefillDate){
   show('add');
 }
 function syncChips(){
-  Array.prototype.forEach.call($('f-priority').children,function(c){
-    c.classList.toggle('on',c.getAttribute('data-v')===form.priority);
-  });
   Array.prototype.forEach.call($('f-repeat').children,function(c){
     c.classList.toggle('on',c.getAttribute('data-v')===form.repeat);
   });
@@ -652,7 +647,7 @@ function saveTask(){
   var end=$('f-end').value||'';
   if(end&&end<start){$('add-hint').textContent='End date is before start date';return;}
   var interval=parseInt($('f-interval').value,10)||1;
-  tasks.push({id:uid(),name:name,priority:form.priority,repeat:form.repeat,startDate:start,endDate:end,interval:interval,defaultDone:form.defaultDone});
+  tasks.push({id:uid(),name:name,repeat:form.repeat,startDate:start,endDate:end,interval:interval,defaultDone:form.defaultDone});
   save();
   if(selectedDate&&form.repeat==='once'&&start===selectedDate){
     openDay(selectedDate);
@@ -701,7 +696,7 @@ function buildDataSnapshot(){
   var cutoff=(function(){var d=parse(t);d.setDate(d.getDate()-45);return fmt(d);})();
   var snap={today:t,tasks:[],done:{},stats:{}};
   tasks.forEach(function(x){
-    var o={n:x.name,p:x.priority,r:x.repeat,s:x.startDate};
+    var o={n:x.name,r:x.repeat,s:x.startDate};
     if(x.endDate)o.e=x.endDate;
     if(x.defaultDone)o.d=true;
     snap.tasks.push(o);
@@ -822,9 +817,6 @@ function openChat(){
 }
 
 /* ================= wiring ================= */
-Array.prototype.forEach.call($('f-priority').children,function(c){
-  c.addEventListener('click',function(){form.priority=c.getAttribute('data-v');syncChips();});
-});
 Array.prototype.forEach.call($('f-repeat').children,function(c){
   c.addEventListener('click',function(){form.repeat=c.getAttribute('data-v');syncChips();});
 });
