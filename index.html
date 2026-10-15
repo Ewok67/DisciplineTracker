@@ -68,6 +68,17 @@ main::-webkit-scrollbar{display:none}
 .pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .empty-state{text-align:center;color:var(--dim);font-size:12px;padding:30px 10px}
 .task-meta{font-size:9px;color:var(--dim);margin-top:3px;letter-spacing:.5px}
+.qty-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.qty-val{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap}
+.qty-slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:4px;outline:none;cursor:pointer;
+  background:var(--line)}
+.qty-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
+  border:1px solid rgba(255,255,255,.3);
+  box-shadow:var(--shine),0 2px 8px rgba(255,107,53,.5)}
+.qty-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;border:none;
+  background:linear-gradient(180deg,#ffb066,#f4560d);
+  box-shadow:0 2px 8px rgba(255,107,53,.5)}
 .del-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,59,59,.45);background:rgba(255,59,59,.12);color:var(--accent2);font-size:15px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1}
 .del-btn:active{background:var(--accent2);color:#fff}
 .due-badge{font-size:8px;font-weight:800;letter-spacing:1px;padding:4px 9px;border-radius:12px;flex-shrink:0;white-space:nowrap}
@@ -161,7 +172,14 @@ input:focus{border-color:var(--accent)}
     <div class="day-head"><h2 id="add-title">NEW TASK</h2></div>
 
     <label>Task name</label>
-    <input id="f-name" placeholder="e.g. Drink 2L water" autocomplete="off">
+    <input id="f-name" placeholder="e.g. Read pages" autocomplete="off">
+
+    <label>Amount <span style="color:var(--dim)">(optional — for countable habits)</span></label>
+    <div class="row2">
+      <div><input id="f-amount" type="number" min="1" placeholder="20" inputmode="numeric"></div>
+      <div><input id="f-unit" placeholder="unit: pages, min, reps"></div>
+    </div>
+    <div class="hint">Leave empty for a simple check-off task. With an amount you get a slider per day.</div>
 
     <label>Starts as</label>
     <div class="chips" id="f-default">
@@ -294,9 +312,9 @@ function load(){
 function seedDemo(){
   var t=today();
   tasks=[
-    {id:uid(),name:'Morning workout',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
-    {id:uid(),name:'Read 20 pages',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false},
-    {id:uid(),name:'No sugar',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:true}
+    {id:uid(),name:'Morning workout',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false,amount:0,unit:''},
+    {id:uid(),name:'Read pages',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:false,amount:20,unit:'pages'},
+    {id:uid(),name:'No sugar',repeat:'daily',startDate:t,endDate:'',interval:1,defaultDone:true,amount:0,unit:''}
   ];
   save();
 }
@@ -320,11 +338,31 @@ function isDue(task,dateStr){
 function dueOn(dateStr){return tasks.filter(function(t){return isDue(t,dateStr);});}
 function isDone(task,dateStr){
   var v=done[doneKey(task.id,dateStr)];
+  if(task.amount){
+    return progressValue(task,dateStr)>=task.amount;
+  }
   return task.defaultDone?v!==false:v===true;
+}
+/** How much of a task is done on a day: number for quantified, 0/1 for binary. */
+function progressValue(task,dateStr){
+  var v=done[doneKey(task.id,dateStr)];
+  if(typeof v==='number')return v;
+  if(task.amount)return task.defaultDone?task.amount:0;
+  return 0;
+}
+/** Fractional completion 0..1 of one task on one day. */
+function taskProgress(task,dateStr){
+  if(task.amount){
+    return Math.max(0,Math.min(1,progressValue(task,dateStr)/task.amount));
+  }
+  return isDone(task,dateStr)?1:0;
 }
 function toggleDone(task,dateStr){
   var k=doneKey(task.id,dateStr);
-  if(isDone(task,dateStr)){
+  if(task.amount){
+    // slider tasks: tap cycles 0 -> full -> 0
+    done[k]=isDone(task,dateStr)?0:task.amount;
+  }else if(isDone(task,dateStr)){
     done[k]=false;            /* explicitly break it for this day only */
   }else if(task.defaultDone){
     delete done[k];           /* back to the default: stays checked */
@@ -336,8 +374,13 @@ function toggleDone(task,dateStr){
 function dayPct(dateStr){
   var d=dueOn(dateStr);
   if(!d.length)return {due:0,dn:0,pct:-1};
-  var n=d.filter(function(t){return isDone(t,dateStr);}).length;
-  return {due:d.length,dn:n,pct:Math.round(n/d.length*100)};
+  var sum=0;
+  d.forEach(function(t){sum+=taskProgress(t,dateStr);});
+  return {due:d.length,dn:sum,pct:Math.round(sum/d.length*100)};
+}
+/** 2 -> "2", 1.5 -> "1.5" for stat displays with partial progress. */
+function fmtNum(n){
+  return Math.abs(n-Math.round(n))<0.05?String(Math.round(n)):n.toFixed(1);
 }
 function monthDays(ym){
   var y=+ym.slice(0,4),m=+ym.slice(5,7)-1;
@@ -422,9 +465,10 @@ function renderTasks(){
       var rep={once:'ONCE',daily:'DAILY',weekly:'WEEKLY',monthly:'MONTHLY',interval:'EVERY '+task.interval+'D'}[task.repeat]||task.repeat;
       var range=shortDate(task.startDate)+(task.endDate?' → '+shortDate(task.endDate):'');
       var stays=task.defaultDone?' · STAYS ✓':'';
+      var qty=task.amount?' · '+task.amount+' '+esc(task.unit||''):'';
       return '<div class="task-row" style="cursor:default">'+
         '<div style="flex:1;min-width:0"><div class="name">'+esc(task.name)+'</div>'+
-        '<div class="task-meta">'+rep+' · '+range+stays+'</div></div>'+
+        '<div class="task-meta">'+rep+' · '+range+stays+qty+'</div></div>'+
         '<div class="due-badge '+bcls+'">'+badge+'</div>'+
         '<div class="del-btn" data-id="'+task.id+'">&#215;</div></div>';
     }).join('');
@@ -478,16 +522,39 @@ function renderDay(dateStr){
   }else{
     box.innerHTML=list.map(function(t){
       var dn=isDone(t,dateStr);
+      if(t.amount){
+        var n=progressValue(t,dateStr);
+        return '<div class="task-row" style="cursor:default;flex-direction:column;align-items:stretch;gap:0">'+
+          '<div class="qty-head"><div class="name">'+esc(t.name)+'</div>'+
+          '<div class="qty-val" id="qv-'+t.id+'">'+n+' / '+t.amount+' '+esc(t.unit||'')+'</div></div>'+
+          '<input type="range" class="qty-slider" min="0" max="'+t.amount+'" step="1" value="'+n+'" data-id="'+t.id+'"></div>';
+      }
       return '<div class="task-row'+(dn?' checked':'')+'" data-id="'+t.id+'">'+
         '<div class="box">'+(dn?'&#10003;':'')+'</div>'+
         '<div class="name">'+esc(t.name)+'</div></div>';
     }).join('');
-    Array.prototype.forEach.call(box.querySelectorAll('.task-row'),function(el){
+    Array.prototype.forEach.call(box.querySelectorAll('.task-row[data-id]'),function(el){
       el.addEventListener('click',function(){
         var id=el.getAttribute('data-id');
         var task=tasks.filter(function(x){return x.id===id;})[0];
         toggleDone(task,dateStr);
         renderDay(dateStr);renderCalendar();
+      });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('.qty-slider'),function(sl){
+      var id=sl.getAttribute('data-id');
+      var task=tasks.filter(function(x){return x.id===id;})[0];
+      paintSlider(sl,task.amount);
+      sl.addEventListener('input',function(){
+        var v=+sl.value;
+        done[doneKey(id,dateStr)]=v;               // in-memory, live
+        paintSlider(sl,task.amount);
+        $('qv-'+id).textContent=v+' / '+task.amount+' '+(task.unit||'');
+        updateDayPct(dateStr);
+      });
+      sl.addEventListener('change',function(){
+        save();
+        renderCalendar();
       });
     });
   }
@@ -496,8 +563,23 @@ function renderDay(dateStr){
   pctEl.className='day-pct'+(st.pct<0?'':' '+pctClass(st.pct));
   $('day-bar').style.width=(st.pct<0?0:st.pct)+'%';
   $('add-for-day').style.display=list.length?'none':'';
-  $('header-sub').textContent=st.due?st.dn+' of '+st.due+' completed':'';
+  $('header-sub').textContent=st.due?fmtNum(st.dn)+' of '+st.due+' completed':'';
   show('day');
+}
+
+/** Gradient fill on a slider track. */
+function paintSlider(sl,max){
+  var pct=max>0?Math.round(+sl.value/max*100):0;
+  sl.style.background='linear-gradient(90deg,#ff7a35 0%,#ff7a35 '+pct+'%,#1a2a3a '+pct+'%,#1a2a3a 100%)';
+}
+/** Refresh the day % without re-rendering the rows (keeps slider drag alive). */
+function updateDayPct(dateStr){
+  var st=dayPct(dateStr);
+  var pctEl=$('day-pct');
+  pctEl.textContent=st.pct<0?'—':st.pct+'%';
+  pctEl.className='day-pct'+(st.pct<0?'':' '+pctClass(st.pct));
+  $('day-bar').style.width=(st.pct<0?0:st.pct)+'%';
+  $('header-sub').textContent=st.due?fmtNum(st.dn)+' of '+st.due+' completed':'';
 }
 
 function renderDashboard(){
@@ -510,11 +592,11 @@ function renderDashboard(){
   $('s-rate').className='v '+(rate>=80?'g':rate>=50?'o':'r');
   $('s-streak').textContent=streak()+'d';
   var td=dayPct(t);
-  $('s-today').textContent=td.due?td.dn+'/'+td.due:'0';
+  $('s-today').textContent=td.due?fmtNum(td.dn)+'/'+td.due:'0';
   var wk=rangeStats(fmt(weekAgo),t);
-  $('s-week').textContent=wk.due?wk.dn+'/'+wk.due:'0';
+  $('s-week').textContent=wk.due?fmtNum(wk.dn)+'/'+wk.due:'0';
   var mo=rangeStats(mStart,t);
-  $('s-month').textContent=mo.due?mo.dn+'/'+mo.due:'0';
+  $('s-month').textContent=mo.due?fmtNum(mo.dn)+'/'+mo.due:'0';
   $('s-skips').textContent=skippedDays();
 
   var wh='';
@@ -528,19 +610,23 @@ function renderDashboard(){
   }
   $('week-bars').innerHTML=wh;
 
-  /* per-task completion (all time), worst first */
+  /* per-task completion (all time), worst first — partial progress counts fractionally */
   var tb='';
   var taskStats=tasks.map(function(task){
-    var due=0,dn=0;
+    var due=0,sum=0;
     for(var dd=parse(task.startDate);fmt(dd)<=t;dd.setDate(dd.getDate()+1)){
       if(!isDue(task,fmt(dd)))continue;
-      due++;if(isDone(task,fmt(dd)))dn++;
+      due++;sum+=taskProgress(task,fmt(dd));
     }
-    return {name:task.name,due:due,dn:dn,pct:due?Math.round(dn/due*100):0};
+    return {name:task.name,amount:task.amount,unit:task.unit,due:due,sum:sum,pct:due?Math.round(sum/due*100):0};
   }).sort(function(a,b){return a.pct-b.pct;});
   taskStats.forEach(function(s){
     var col=s.pct>=80?'var(--green)':s.pct>=50?'#ffaa00':'var(--accent2)';
     tb+='<div class="bar-row"><div class="lbl">'+esc(s.name)+'</div><div class="bar"><div style="width:'+s.pct+'%;background:'+col+'"></div></div><div class="val">'+s.pct+'%</div></div>';
+    if(s.amount&&s.due){
+      var avg=Math.round(s.sum/s.due*10)/10;
+      tb+='<div style="font-size:9px;color:var(--dim);margin:-5px 0 9px 96px">avg '+fmtNum(avg)+' '+esc(s.unit||'')+'/day</div>';
+    }
   });
   $('task-bars').innerHTML=tb||'<p style="font-size:11px;color:var(--dim)">No tasks yet</p>';
 
@@ -578,6 +664,8 @@ var form={repeat:'once',defaultDone:false};
 function resetForm(prefillDate){
   form.repeat='once';form.defaultDone=false;
   $('f-name').value='';
+  $('f-amount').value='';
+  $('f-unit').value='';
   $('f-start').value=prefillDate||today();
   $('f-end').value='';
   $('f-interval').value=3;
@@ -605,7 +693,10 @@ function saveTask(){
   var end=$('f-end').value||'';
   if(end&&end<start){$('add-hint').textContent='End date is before start date';return;}
   var interval=parseInt($('f-interval').value,10)||1;
-  tasks.push({id:uid(),name:name,repeat:form.repeat,startDate:start,endDate:end,interval:interval,defaultDone:form.defaultDone});
+  var amount=parseInt($('f-amount').value,10)||0;
+  var unit=$('f-unit').value.trim();
+  if(amount<0)amount=0;
+  tasks.push({id:uid(),name:name,repeat:form.repeat,startDate:start,endDate:end,interval:interval,defaultDone:form.defaultDone,amount:amount,unit:amount?unit:''});
   save();
   if(selectedDate&&form.repeat==='once'&&start===selectedDate){
     openDay(selectedDate);
