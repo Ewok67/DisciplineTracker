@@ -16,10 +16,20 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
 #app{width:100%;max-width:420px;height:100vh;max-height:900px;display:flex;flex-direction:column;background:#000;position:relative}
-header{padding:16px 20px 10px;text-align:center;border-bottom:1px solid var(--line);flex-shrink:0}
+header{position:relative;padding:16px 56px 10px;text-align:center;border-bottom:1px solid var(--line);flex-shrink:0}
+.header-center{display:inline-block}
 h1{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:3px;color:var(--fg)}
 .subtitle{color:var(--dim);font-size:9px;letter-spacing:2px;margin-top:4px;text-transform:uppercase}
-main{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px}
+.hdr-btn{position:absolute;top:12px;width:38px;height:38px;border-radius:50%;cursor:pointer;color:var(--muted);
+  background:linear-gradient(180deg,#1c1d21 0%,#0e0f11 100%);
+  border:1px solid #2c2d31;
+  box-shadow:var(--shine);
+  display:flex;align-items:center;justify-content:center}
+#hdr-dash{left:12px}
+#hdr-settings{right:12px}
+.hdr-btn:active{color:var(--fg);filter:brightness(1.3)}
+#screen-calendar{padding-top:34px}
+main{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px;padding-bottom:84px}
 main::-webkit-scrollbar{display:none}
 .hidden{display:none!important}
 
@@ -95,25 +105,8 @@ input:focus{border-color:var(--accent)}
 .bar>div{height:100%;border-radius:4px}
 .bar-row .val{width:34px;text-align:right;font-size:10px;font-weight:700;flex-shrink:0}
 
-/* ---------- Bottom bar: hamburger + centered menu + round FAB ---------- */
-nav{position:relative;display:flex;justify-content:center;align-items:center;padding:12px 16px 16px;border-top:1px solid var(--line);flex-shrink:0;background:#000}
-#nav-more{width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:17px;
-  background:linear-gradient(180deg,#1c1d21 0%,#0e0f11 100%);
-  border:1px solid #2c2d31;
-  box-shadow:var(--shine);
-  display:flex;align-items:center;justify-content:center}
-#nav-more:active{color:var(--fg);filter:brightness(1.3)}
-#nav-more.active{color:var(--fg);border-color:#45464c;background:linear-gradient(180deg,#2a2b2f 0%,#16171a 100%)}
-#nav-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  display:flex;flex-direction:column;gap:4px;padding:6px;min-width:196px;z-index:30;
-  background:var(--card);border:1px solid #45464c;border-radius:14px;
-  box-shadow:0 12px 32px rgba(0,0,0,.65)}
-.menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
-  background:transparent;border:none;cursor:pointer;color:var(--fg);
-  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-align:left}
-.menu-item:active{background:#222326}
-.menu-item svg{color:var(--muted);flex-shrink:0}
-#nav-new{position:absolute;right:16px;width:56px;height:56px;border-radius:50%;font-size:28px;font-weight:300;line-height:1;cursor:pointer;color:#fff;
+/* ---------- floating + FAB (bottom right) ---------- */
+#nav-new{position:absolute;right:18px;bottom:22px;width:56px;height:56px;border-radius:50%;font-size:28px;font-weight:300;line-height:1;cursor:pointer;color:#fff;z-index:20;
   background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
   border:1px solid rgba(255,255,255,.3);
   box-shadow:var(--shine),0 6px 22px rgba(255,107,53,.5);
@@ -122,28 +115,21 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
 #nav-new:active{transform:scale(.94)}
 .back-btn{background:transparent;border:none;color:var(--muted);font-size:12px;letter-spacing:1px;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
 
-/* ---------- Assistant chat ---------- */
-#chat-log{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
-.bubble{max-width:85%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-.bubble.user{align-self:flex-end;background:linear-gradient(180deg,#3a3b40,#222326);border:1px solid #2f3034;border-bottom-right-radius:5px;color:var(--fg)}
-.bubble.agent{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px}
-.bubble.typing{color:var(--dim);font-style:italic}
-#chat-dock{position:sticky;bottom:0;background:#000;padding-top:8px}
-#chat-input-row{display:flex;gap:8px;align-items:center}
-#chat-input{flex:1;padding:12px 14px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:24px;font-size:13px;outline:none}
-#chat-input:focus{border-color:var(--accent)}
-#chat-send{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;
-  background:linear-gradient(180deg,#ffb066 0%,#ff7a35 45%,#f4560d 100%);
-  border:1px solid rgba(255,255,255,.3);box-shadow:var(--shine),0 4px 14px rgba(255,107,53,.4)}
-#chat-send:active{transform:scale(.94)}
-.dl-note{font-size:10px;color:var(--dim);margin-top:10px;text-align:center;line-height:1.5}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1>DISCIPLINE TRACKER</h1>
-    <div class="subtitle" id="header-sub">Stay on track</div>
+    <button id="hdr-dash" class="hdr-btn" aria-label="Dashboard">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    </button>
+    <div class="header-center">
+      <h1>DISCIPLINE TRACKER</h1>
+      <div class="subtitle" id="header-sub">Stay on track</div>
+    </div>
+    <button id="hdr-settings" class="hdr-btn" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </header>
 
   <!-- CALENDAR -->
@@ -268,32 +254,8 @@ nav{position:relative;display:flex;justify-content:center;align-items:center;pad
     </div>
   </main>
 
-  <!-- ASSISTANT -->
-  <main id="screen-chat" class="hidden">
-    <button class="back-btn" id="chat-back">&#8249; BACK</button>
-    <div class="day-head"><h2>ASSISTANT</h2></div>
-    <div id="chat-log"></div>
-    <div id="chat-dock"></div>
-  </main>
-
-  <nav>
-    <button id="nav-more" aria-label="Menu">&#8801;</button>
-    <button id="nav-new" aria-label="New task">+</button>
-    <div id="nav-menu" class="hidden">
-      <button class="menu-item" id="menu-settings">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        SETTINGS
-      </button>
-      <button class="menu-item" id="menu-dash">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        DASHBOARD
-      </button>
-      <button class="menu-item" id="menu-assistant">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        ASSISTANT
-      </button>
-    </div>
-  </nav>
+  <!-- floating + FAB (bottom right) -->
+  <button id="nav-new" aria-label="New task">+</button>
 </div>
 
 <script>
@@ -605,16 +567,12 @@ function renderDashboard(){
 }
 
 /* ================= screens / nav ================= */
-var SCREENS=['calendar','day','add','dashboard','tasks','settings','chat'];
+var SCREENS=['calendar','day','add','dashboard','tasks','settings'];
 function show(name){
   SCREENS.forEach(function(s){$('screen-'+s).classList.toggle('hidden',s!==name);});
 }
-function closeMenu(){
-  var m=$('nav-menu');if(m)m.classList.add('hidden');
-  var b=$('nav-more');if(b)b.classList.remove('active');
-}
 function openDay(dateStr){renderDay(dateStr);}
-function backToCalendar(){closeMenu();show('calendar');renderCalendar();}
+function backToCalendar(){show('calendar');renderCalendar();}
 
 var form={repeat:'once',defaultDone:false};
 function resetForm(prefillDate){
@@ -686,136 +644,6 @@ function checkUpdates(){
   }
 }
 
-/* ================= assistant ================= */
-var chatState='unknown';
-var chatTimer=null;
-
-/** Compact snapshot of everything the model may need (last 45 days). */
-function buildDataSnapshot(){
-  var t=today();
-  var cutoff=(function(){var d=parse(t);d.setDate(d.getDate()-45);return fmt(d);})();
-  var snap={today:t,tasks:[],done:{},stats:{}};
-  tasks.forEach(function(x){
-    var o={n:x.name,r:x.repeat,s:x.startDate};
-    if(x.endDate)o.e=x.endDate;
-    if(x.defaultDone)o.d=true;
-    snap.tasks.push(o);
-  });
-  Object.keys(done).forEach(function(k){
-    var parts=k.split('|'),date=parts[1];
-    if(date<cutoff)return;
-    var name=(tasks.filter(function(x){return x.id===parts[0];})[0]||{}).name||'?';
-    if(!snap.done[date])snap.done[date]=[];
-    snap.done[date].push(done[k]===true?name:'!'+name);
-  });
-  var weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-6);
-  snap.stats={
-    todayPct:dayPct(t).pct,
-    streak:streak(),
-    weekDone:rangeStats(fmt(weekAgo),t),
-    skips:skippedDays()
-  };
-  return JSON.stringify(snap);
-}
-
-function addBubble(who,text){
-  var log=$('chat-log');
-  var div=document.createElement('div');
-  div.className='bubble '+who;
-  div.textContent=text;
-  log.appendChild(div);
-  var main=$('screen-chat');
-  main.scrollTop=main.scrollHeight;
-  return div;
-}
-
-function renderChatDock(state){
-  var dock=$('chat-dock');
-  chatState=state;
-  if(state==='unavailable'){
-    dock.innerHTML='<div class="dl-note">The assistant only runs inside the installed app on your phone.</div>';
-  }else if(state.indexOf('downloading')===0){
-    var pct=state.split(':')[1]||'0';
-    dock.innerHTML='<div class="progress" style="margin:0"><div style="width:'+pct+'%"></div></div>'+
-      '<div class="dl-note">Downloading assistant model… '+pct+'%</div>';
-  }else if(state==='missing'||state==='loading'||state==='error'){
-    var msg=state==='error'?'Download failed — check your connection and try again.':'One-time download of a ~1.1 GB model. It runs fully offline afterwards.';
-    dock.innerHTML='<button class="btn btn-primary" id="dl-model" style="margin-top:0">DOWNLOAD MODEL</button>'+
-      '<div class="dl-note">'+msg+'</div>';
-    $('dl-model').addEventListener('click',function(){
-      if(window.AndroidBridge&&window.AndroidBridge.agentDownload){
-        renderChatDock('downloading:0');
-        window.AndroidBridge.agentDownload();
-      }
-    });
-  }else{ /* ready */
-    dock.innerHTML='<div id="chat-input-row"><input id="chat-input" placeholder="Ask about your habits…" autocomplete="off"><button id="chat-send">&#10132;</button></div>';
-    $('chat-send').addEventListener('click',sendQuestion);
-    $('chat-input').addEventListener('keydown',function(e){if(e.key==='Enter')sendQuestion();});
-    setTimeout(function(){var i=$('chat-input');if(i)i.focus();},50);
-  }
-}
-
-function sendQuestion(){
-  var input=$('chat-input');
-  var q=(input.value||'').trim();
-  if(!q)return;
-  input.value='';
-  addBubble('user',q);
-  var typing=addBubble('agent typing','thinking…');
-  if(window.AndroidBridge&&window.AndroidBridge.agentAsk){
-    window.AndroidBridge.agentAsk(q,buildDataSnapshot());
-  }else{
-    typing.textContent='Assistant only works inside the installed app.';
-  }
-}
-
-window.__onAgentAnswer=function(text){
-  var t=document.querySelector('.bubble.typing');
-  if(t)t.remove();
-  addBubble('agent',text);
-};
-window.__onAgentError=function(code){
-  var t=document.querySelector('.bubble.typing');
-  if(t)t.remove();
-  var msg=code==='model-not-ready'?'Model not loaded yet.':code==='empty'?'No answer generated. Try rephrasing.':'Something went wrong.';
-  addBubble('agent',msg);
-};
-window.__onAgentProgress=function(percent){
-  if(chatState.indexOf('downloading')===0)renderChatDock('downloading:'+percent);
-};
-window.__onAgentStatus=function(state){
-  if(state==='ready'){
-    var log=$('chat-log');
-    log.innerHTML='';
-    addBubble('agent','Model ready. Ask me anything about your habits — e.g. "how was my week?" or "which tasks am I skipping?".');
-  }
-  renderChatDock(state);
-};
-
-function openChat(){
-  show('chat');
-  var log=$('chat-log');
-  log.innerHTML='';
-  $('chat-dock').innerHTML='';
-  if(window.AndroidBridge&&window.AndroidBridge.agentStatus){
-    var st=window.AndroidBridge.agentStatus();
-    if(st==='ready'){
-      addBubble('agent','Model ready. Ask me anything about your habits — e.g. "how was my week?" or "which tasks am I skipping?".');
-      renderChatDock('ready');
-    }else{
-      renderChatDock(st);
-    }
-    if(chatTimer)clearInterval(chatTimer);
-    chatTimer=setInterval(function(){
-      var s=window.AndroidBridge.agentStatus();
-      if(s!==chatState)renderChatDock(s);
-    },1000);
-  }else{
-    renderChatDock('unavailable');
-  }
-}
-
 /* ================= wiring ================= */
 Array.prototype.forEach.call($('f-repeat').children,function(c){
   c.addEventListener('click',function(){form.repeat=c.getAttribute('data-v');syncChips();});
@@ -825,22 +653,11 @@ Array.prototype.forEach.call($('f-default').children,function(c){
 });
 $('save-task').addEventListener('click',saveTask);
 $('f-name').addEventListener('keydown',function(e){if(e.key==='Enter')saveTask();});
-$('nav-new').addEventListener('click',function(){closeMenu();renderTasks();});
-$('nav-more').addEventListener('click',function(){
-  var m=$('nav-menu');
-  var open=m.classList.toggle('hidden');
-  $('nav-more').classList.toggle('active',!open);
-});
-$('screen-calendar').addEventListener('click',function(){closeMenu();});
-$('menu-settings').addEventListener('click',function(){closeMenu();renderSettings();});
-$('menu-dash').addEventListener('click',function(){closeMenu();renderDashboard();});
-$('menu-assistant').addEventListener('click',function(){closeMenu();openChat();});
+$('nav-new').addEventListener('click',renderTasks);
+$('hdr-dash').addEventListener('click',renderDashboard);
+$('hdr-settings').addEventListener('click',renderSettings);
 $('settings-back').addEventListener('click',backToCalendar);
 $('check-updates').addEventListener('click',checkUpdates);
-$('chat-back').addEventListener('click',function(){
-  if(chatTimer){clearInterval(chatTimer);chatTimer=null;}
-  backToCalendar();
-});
 $('tasks-back').addEventListener('click',backToCalendar);
 $('tasks-add').addEventListener('click',function(){resetForm();});
 $('day-back').addEventListener('click',backToCalendar);

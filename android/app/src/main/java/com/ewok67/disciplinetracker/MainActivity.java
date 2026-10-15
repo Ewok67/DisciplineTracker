@@ -49,46 +49,6 @@ public class MainActivity extends Activity {
             public String getVersion() {
                 return BuildConfig.VERSION_NAME;
             }
-
-            @JavascriptInterface
-            public String agentStatus() {
-                return AgentEngine.status(MainActivity.this);
-            }
-
-            @JavascriptInterface
-            public void agentDownload() {
-                AgentEngine.downloadModel(MainActivity.this, new AgentEngine.Listener() {
-                    @Override
-                    public void onProgress(int percent) {
-                        postToWeb("__onAgentProgress", String.valueOf(percent));
-                    }
-
-                    @Override
-                    public void onDone() {
-                        postToWeb("__onAgentStatus", "ready");
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        postToWeb("__onAgentStatus", "error");
-                    }
-                });
-            }
-
-            @JavascriptInterface
-            public void agentAsk(String question, String dataJson) {
-                AgentEngine.ask(MainActivity.this, question, dataJson, new AgentEngine.Callback() {
-                    @Override
-                    public void onResult(String text) {
-                        postToWeb("__onAgentAnswer", text);
-                    }
-
-                    @Override
-                    public void onError(String code) {
-                        postToWeb("__onAgentError", code);
-                    }
-                });
-            }
         }, "AndroidBridge");
 
         if (savedInstanceState == null) {
@@ -117,35 +77,6 @@ public class MainActivity extends Activity {
             });
         }
     };
-
-    /** Posts a JS callback with one string payload (JSON-escaped). */
-    private void postToWeb(final String fn, final String payload) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (webView != null) {
-                    webView.evaluateJavascript(
-                            "window." + fn + " && window." + fn + "("
-                                    + toJsString(payload) + ")", null);
-                }
-            }
-        });
-    }
-
-    private static String toJsString(String s) {
-        StringBuilder sb = new StringBuilder("\"");
-        for (char c : s.toCharArray()) {
-            switch (c) {
-                case '"':  sb.append("\\\""); break;
-                case '\\': sb.append("\\\\"); break;
-                case '\n': sb.append("\\n");  break;
-                case '\r': sb.append("\\r");  break;
-                case '\t': sb.append("\\t");  break;
-                default:   sb.append(c);
-            }
-        }
-        return sb.append('"').toString();
-    }
 
     @Override
     public void onBackPressed() {
