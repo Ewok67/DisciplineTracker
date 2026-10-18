@@ -10,15 +10,30 @@ android {
         applicationId 'com.ewok67.disciplinetracker'
         minSdk 24
         targetSdk 34
-        versionCode 5
-        versionName '1.0.4'
+        versionCode 6
+        versionName '1.0.5'
     }
 
     buildFeatures {
         buildConfig true
     }
 
+    signingConfigs {
+        // Committed to the repo so every build signs with the same key —
+        // required for APK updates to install over the previous version.
+        debug {
+            storeFile file("signing.p12")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+            storeType "PKCS12"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

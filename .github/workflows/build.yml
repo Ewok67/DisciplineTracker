@@ -25,28 +25,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Stable signing key: the first run generates it and caches it; later
-      # runs reuse the same key so installed apps accept future APK updates.
-      # (If the cache is ever evicted, the signature changes and the app must
-      # be reinstalled once — rare; the key is re-saved on every run.)
-      - name: Restore signing keystore
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: android-debug-keystore-v1
-
-      - name: Generate keystore if missing
-        run: |
-          mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkeypair -v \
-              -keystore ~/.android/debug.keystore \
-              -alias androiddebugkey \
-              -storepass android \
-              -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
+      # Stable signing key, committed to the repo. Every build signs with this
+      # exact file, so installed apps accept future APK updates no matter how
+      # much time passes between builds (CI caches are evicted after 7 idle
+      # days and would silently break update compatibility).
+      - name: Verify signing key
+        run: ls -la android/app/signing.p12
 
       - name: Read version from gradle
         id: version
