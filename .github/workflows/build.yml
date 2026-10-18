@@ -30,7 +30,7 @@ jobs:
       # much time passes between builds (CI caches are evicted after 7 idle
       # days and would silently break update compatibility).
       - name: Verify signing key
-        run: ls -la android/app/signing.p12
+        run: ls -la signing.p12
 
       - name: Read version from gradle
         id: version
